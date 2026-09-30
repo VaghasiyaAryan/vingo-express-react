@@ -1,0 +1,109 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// The single admin account. Bootstrapped lazily from ADMIN_PASSWORD (and, if
+// set, ADMIN_USERNAME / ADMIN_EMAIL) the first time it is needed — after that
+// this row is the source of truth, editable from /admin/settings. See
+// server/src/auth.js.
+model AdminUser {
+  id           String   @id @default("admin")
+  username     String   @default("admin")
+  email        String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  QUOTED
+  CLOSED
+}
+
+model Inquiry {
+  id              String        @id @default(cuid())
+  name            String
+  email           String
+  phone           String
+  company         String?
+  country         String?
+  productInterest String?
+  quantity        String?
+  message         String
+  status          InquiryStatus @default(NEW)
+  createdAt       DateTime      @default(now())
+
+  @@index([createdAt])
+  @@index([status])
+}
+
+// Brute-force protection for /admin/login. DB-backed (not in-memory) because
+// Vercel serverless functions don't share memory across cold starts.
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  ip        String
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([ip, createdAt])
+}
+
+// Singleton row (fixed id) holding the admin's uploaded catalogue PDF, if any.
+// Falls back to the auto-generated catalogue (see /api/catalog) when absent.
+model CatalogFile {
+  id         String   @id @default("catalog")
+  url        String
+  filename   String
+  sizeBytes  Int
+  uploadedAt DateTime @default(now())
+}
+
+// A person on the Team page. `featured` puts them in the large leader card
+// at the top; everyone else renders in the grid below, ordered by sortOrder.
+model TeamMember {
+  id        String   @id @default(cuid())
+  name      String
+  role      String
+  bio       String
+  photo     String?
+  featured  Boolean  @default(false)
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+}
+
+model Product {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  category     String
+  name         String
+  image        String?
+  // Certificate of Analysis — a lab report/spec sheet PDF (or scanned image)
+  // for this batch/product, uploaded from /admin/products. Shown as a
+  // "Download COA" button on the public site only when set.
+  coaUrl       String?
+  form         String   @default("flakes")
+  colors       Json
+  short        String
+  description  String
+  forms        String[]
+  applications String[]
+  specs        Json
+  active       Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([category])
+  @@index([active])
+}

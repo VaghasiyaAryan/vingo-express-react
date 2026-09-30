@@ -1,0 +1,10 @@
+{
+  "installCommand": "npm install --prefix server && npm install --prefix client",
+  "buildCommand": "npm run build --prefix client",
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "{public/**,client/dist/**,shared/**}"
+    }
+  },
+  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }]
+}
