@@ -4,7 +4,14 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // GoDaddy's Node.js hosting build log couldn't detect the container's
+  // OpenSSL version and silently defaulted to 1.1.x, which may not match
+  // what's actually there at runtime. Generating engines for both the
+  // common Debian OpenSSL 3.0 target and the native platform (Vercel's
+  // build environment, still used for local `vercel --prod` deploys)
+  // means whichever is actually correct, a working engine ships.
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x"]
 }
 
 // The single admin account. Bootstrapped lazily from ADMIN_PASSWORD (and, if
