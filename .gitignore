@@ -1,5 +1,13 @@
 node_modules
 dist
+.npm-cache-fresh
+
+# Committed from Windows dev machines but installed on Linux hosting
+# (GoDaddy) — npm's optional-dependency resolution for platform-specific
+# native binaries (Rollup, esbuild, etc.) gets it wrong across that OS
+# mismatch when a lockfile from the other platform is present. Each
+# environment now resolves and keeps its own.
+package-lock.json
 .env
 .env*
 .env*.local
