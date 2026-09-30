@@ -1,7 +1,18 @@
 import { PrismaClient } from "@prisma/client";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import fs from "node:fs";
+
+// GoDaddy's hosting network blocks outbound TCP on port 5432 (confirmed via
+// runtime logs: "Can't reach database server", while the same connection
+// string works fine from every other network). Route queries through Neon's
+// WebSocket/HTTPS endpoint instead, which only needs port 443.
+neonConfig.webSocketConstructor = ws;
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaNeon(pool);
 
 // GoDaddy's Alpine/musl runtime container has no `openssl` CLI in PATH, so
 // Prisma's own libssl-version auto-detection fails and it silently defaults
@@ -11,7 +22,7 @@ import fs from "node:fs";
 // The correct engine *is* bundled (schema.prisma's binaryTargets includes
 // linux-musl-openssl-3.0.x), detection just never picks it. Point Prisma at
 // it directly, bypassing detection, whenever that file is present.
-if (!process.env.PRISMA_QUERY_ENGINE_LIBRARY) {
+if (process.platform === "linux" && !process.env.PRISMA_QUERY_ENGINE_LIBRARY) {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   const prismaClientDir = path.join(__dirname, "../node_modules/.prisma/client");
   try {
@@ -31,7 +42,7 @@ if (!process.env.PRISMA_QUERY_ENGINE_LIBRARY) {
 // reload until Postgres refuses connections.
 const globalForPrisma = globalThis;
 
-export const prisma = globalForPrisma.__vingoPrisma ?? new PrismaClient();
+export const prisma = globalForPrisma.__vingoPrisma ?? new PrismaClient({ adapter });
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.__vingoPrisma = prisma;
