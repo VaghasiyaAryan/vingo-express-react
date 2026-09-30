@@ -4,14 +4,18 @@ datasource db {
 }
 
 generator client {
-  provider      = "prisma-client-js"
-  // GoDaddy's Node.js hosting build log couldn't detect the container's
-  // OpenSSL version and silently defaulted to 1.1.x, which may not match
-  // what's actually there at runtime. Generating engines for both the
-  // common Debian OpenSSL 3.0 target and the native platform (Vercel's
-  // build environment, still used for local `vercel --prod` deploys)
-  // means whichever is actually correct, a working engine ships.
-  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x"]
+  provider = "prisma-client-js"
+  // Confirmed from GoDaddy's actual runtime crash log (not guessed): the
+  // container is Alpine/musl, and it tried `libquery_engine-linux-musl.so.node`
+  // (implicitly the openssl-1.1.x build) which failed — "Error loading shared
+  // library libssl.so.1.1: No such file or directory" — because this Alpine
+  // image only has OpenSSL 3.x. The build container is a *different* base
+  // image (Debian-ish, going by "native" resolving fine there during
+  // `prisma generate`), so build-time success alone never caught this.
+  // linux-musl-openssl-3.0.x is the one that actually matches production;
+  // the debian-* targets stay in case the build container itself ever runs
+  // the generated client directly, and native covers local dev.
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x", "linux-musl-openssl-3.0.x"]
 }
 
 // The single admin account. Bootstrapped lazily from ADMIN_PASSWORD (and, if
