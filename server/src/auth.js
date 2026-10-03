@@ -1,28 +1,34 @@
-import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, randomInt, scryptSync, timingSafeEqual } from "node:crypto";
 import { prisma } from "./prisma.js";
 
 export const SESSION_COOKIE = "vingo_admin";
 const SESSION_DAYS = 7;
 const SESSION_MS = SESSION_DAYS * 24 * 60 * 60 * 1000;
-const ADMIN_ID = "admin";
 
 // ------------------------------------------------------------ password hashing
 // scrypt rather than a dependency (bcrypt/argon2) — the project already has
-// no auth libraries, and node:crypto covers this fine for a single account.
+// no auth libraries, and node:crypto covers this fine. Also reused for OTP
+// codes (server/src/routes/admin/admins.js) — it's just a generic salted
+// secret hash, not password-specific.
 
-function hashPassword(password) {
+export function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
   const hash = scryptSync(password, salt, 64).toString("hex");
   return `${salt}:${hash}`;
 }
 
-function verifyPasswordHash(password, stored) {
+export function verifyPasswordHash(password, stored) {
   const [salt, hash] = String(stored || "").split(":");
   if (!salt || !hash) return false;
   const hashBuf = Buffer.from(hash, "hex");
   const inputBuf = scryptSync(String(password ?? ""), salt, 64);
   if (hashBuf.length !== inputBuf.length) return false;
   return timingSafeEqual(hashBuf, inputBuf);
+}
+
+/** Six-digit numeric OTP code, cryptographically random. */
+export function generateOtp() {
+  return String(randomInt(0, 1_000_000)).padStart(6, "0");
 }
 
 function safeEqual(a, b) {
@@ -34,21 +40,17 @@ function safeEqual(a, b) {
 
 // -------------------------------------------------------------------- account
 /**
- * The single admin account, created lazily from ADMIN_PASSWORD (and, if set,
- * ADMIN_USERNAME / ADMIN_EMAIL) the first time it is needed. After that this
- * database row is the source of truth — /admin/settings edits it directly,
- * and the environment variables are never consulted again. Returns null when
- * neither the row nor ADMIN_PASSWORD exists, which is the "dashboard
- * disabled" state.
+ * Creates the first admin account from ADMIN_PASSWORD (and, if set,
+ * ADMIN_USERNAME / ADMIN_EMAIL) the first time one is needed, but only when
+ * no admin exists yet — after that, the database rows are the only source of
+ * truth and these env vars are never consulted again.
  */
-export async function getAdminUser() {
-  const existing = await prisma.adminUser.findUnique({ where: { id: ADMIN_ID } });
-  if (existing) return existing;
-  if (!process.env.ADMIN_PASSWORD) return null;
+async function ensureBootstrapAdmin() {
+  const count = await prisma.adminUser.count();
+  if (count > 0 || !process.env.ADMIN_PASSWORD) return;
 
-  return prisma.adminUser.create({
+  await prisma.adminUser.create({
     data: {
-      id: ADMIN_ID,
       username: process.env.ADMIN_USERNAME || "admin",
       email: process.env.ADMIN_EMAIL || null,
       passwordHash: hashPassword(process.env.ADMIN_PASSWORD),
@@ -56,25 +58,38 @@ export async function getAdminUser() {
   });
 }
 
-/** Case-insensitive match against either the username or the email. */
-function matchesIdentifier(admin, identifier) {
-  const needle = String(identifier ?? "").trim().toLowerCase();
-  if (!needle) return false;
-  if (needle === admin.username.toLowerCase()) return true;
-  return Boolean(admin.email) && needle === admin.email.toLowerCase();
+/** True once at least one admin account exists (bootstrapping it first if needed). */
+export async function dashboardReady() {
+  await ensureBootstrapAdmin();
+  return (await prisma.adminUser.count()) > 0;
 }
 
-export function verifyCredentials(admin, identifier, password) {
-  return matchesIdentifier(admin, identifier) && verifyPasswordHash(password, admin.passwordHash);
+export async function countAdmins() {
+  return prisma.adminUser.count();
+}
+
+export async function findAdminById(id) {
+  return prisma.adminUser.findUnique({ where: { id } });
+}
+
+/** Case-insensitive match against either username or email. */
+export async function findAdminByIdentifier(identifier) {
+  const needle = String(identifier ?? "").trim();
+  if (!needle) return null;
+  return prisma.adminUser.findFirst({
+    where: {
+      OR: [{ username: { equals: needle, mode: "insensitive" } }, { email: { equals: needle, mode: "insensitive" } }],
+    },
+  });
 }
 
 /**
- * Applies an /admin/settings change. `currentPassword` is required for any
- * change — username/email included — so a hijacked but already-open admin
- * tab cannot silently take over the account.
+ * Applies an /admin/settings change for one admin. `currentPassword` is
+ * required for any change — username/email included — so a hijacked but
+ * already-open admin tab cannot silently take over the account.
  */
-export async function updateAdminAccount({ currentPassword, username, email, newPassword }) {
-  const admin = await getAdminUser();
+export async function updateAdminAccount({ adminId, currentPassword, username, email, newPassword }) {
+  const admin = await findAdminById(adminId);
   if (!admin || !verifyPasswordHash(currentPassword, admin.passwordHash)) {
     return { error: "Current password is incorrect.", status: 401 };
   }
@@ -82,6 +97,17 @@ export async function updateAdminAccount({ currentPassword, username, email, new
   const cleanUsername = String(username ?? "").trim().slice(0, 80);
   if (!cleanUsername) return { error: "Username cannot be empty.", status: 400 };
   const cleanEmail = String(email ?? "").trim().slice(0, 200);
+
+  const conflict = await prisma.adminUser.findFirst({
+    where: {
+      id: { not: adminId },
+      OR: [
+        { username: { equals: cleanUsername, mode: "insensitive" } },
+        ...(cleanEmail ? [{ email: { equals: cleanEmail, mode: "insensitive" } }] : []),
+      ],
+    },
+  });
+  if (conflict) return { error: "Another admin already uses that username or email.", status: 409 };
 
   const data = { username: cleanUsername, email: cleanEmail || null };
 
@@ -92,7 +118,7 @@ export async function updateAdminAccount({ currentPassword, username, email, new
     data.passwordHash = hashPassword(newPassword);
   }
 
-  const updated = await prisma.adminUser.update({ where: { id: ADMIN_ID }, data });
+  const updated = await prisma.adminUser.update({ where: { id: adminId }, data });
   return { admin: updated, passwordChanged: Boolean(newPassword) };
 }
 
@@ -104,21 +130,21 @@ export async function updateAdminAccount({ currentPassword, username, email, new
  * the settings page signs the admin out and back in to the fresh session).
  */
 function sign(admin, expiry) {
-  return createHmac("sha256", admin.passwordHash).update(`vingo-admin:${expiry}`).digest("hex");
+  return createHmac("sha256", admin.passwordHash).update(`vingo-admin:${admin.id}:${expiry}`).digest("hex");
 }
 
-export async function createSessionToken() {
-  const admin = await getAdminUser();
-  if (!admin) throw new Error("No admin account configured — ADMIN_PASSWORD is not set.");
+export async function createSessionToken(admin) {
   const expiry = Date.now() + SESSION_MS;
-  return `${expiry}.${sign(admin, expiry)}`;
+  return `${admin.id}.${expiry}.${sign(admin, expiry)}`;
 }
 
 function parseToken(token) {
-  if (typeof token !== "string" || !token.includes(".")) return null;
-  const [expiry, signature] = token.split(".");
-  if (!/^\d+$/.test(expiry) || Number(expiry) < Date.now()) return null;
-  return { expiry, signature };
+  if (typeof token !== "string") return null;
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  const [adminId, expiry, signature] = parts;
+  if (!adminId || !/^\d+$/.test(expiry) || Number(expiry) < Date.now()) return null;
+  return { adminId, expiry, signature };
 }
 
 /** Resolves to the current admin when the request carries a valid session, else null. */
@@ -126,7 +152,7 @@ export async function authenticatedAdmin(req) {
   const parsed = parseToken(req.cookies?.[SESSION_COOKIE]);
   if (!parsed) return null;
 
-  const admin = await getAdminUser();
+  const admin = await findAdminById(parsed.adminId);
   if (!admin) return null;
 
   return safeEqual(parsed.signature, sign(admin, parsed.expiry)) ? admin : null;
@@ -170,8 +196,8 @@ export function cookieOptionsFor(req) {
   return { ...BASE_COOKIE_OPTIONS, secure: req.secure };
 }
 
-export async function setSessionCookie(req, res) {
-  res.cookie(SESSION_COOKIE, await createSessionToken(), cookieOptionsFor(req));
+export async function setSessionCookie(req, res, admin) {
+  res.cookie(SESSION_COOKIE, await createSessionToken(admin), cookieOptionsFor(req));
 }
 
 export function clearSessionCookie(req, res) {

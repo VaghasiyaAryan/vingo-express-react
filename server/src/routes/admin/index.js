@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { requireAuth } from "../../auth.js";
 import { adminAccountRouter } from "./account.js";
+import { adminAdminsRouter } from "./admins.js";
 import { adminCatalogFileRouter } from "./catalogFile.js";
 import { adminInquiriesRouter } from "./inquiries.js";
 import { adminProductsRouter } from "./products.js";
@@ -16,5 +17,6 @@ adminRouter.use("/inquiries", adminInquiriesRouter);
 adminRouter.use("/products", adminProductsRouter);
 adminRouter.use("/team", adminTeamRouter);
 adminRouter.use("/account", adminAccountRouter);
+adminRouter.use("/admins", adminAdminsRouter);
 adminRouter.use("/catalog-file", adminCatalogFileRouter);
 adminRouter.use("/", adminSystemRouter);

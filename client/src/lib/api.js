@@ -138,5 +138,10 @@ export const endpoints = {
 
     account: (options) => api.get("/api/admin/account", options),
     updateAccount: (data) => api.put("/api/admin/account", data),
+
+    admins: (options) => api.get("/api/admin/admins", options),
+    createAdmin: (data) => api.post("/api/admin/admins", data),
+    confirmAdmin: (inviteId, otp) => api.post(`/api/admin/admins/${inviteId}/confirm`, { otp }),
+    deleteAdmin: (id) => api.delete(`/api/admin/admins/${id}`),
   },
 };

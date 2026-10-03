@@ -24,17 +24,37 @@ generator client {
   previewFeatures = ["driverAdapters"]
 }
 
-// The single admin account. Bootstrapped lazily from ADMIN_PASSWORD (and, if
-// set, ADMIN_USERNAME / ADMIN_EMAIL) the first time it is needed — after that
-// this row is the source of truth, editable from /admin/settings. See
-// server/src/auth.js.
+// An admin account. The first row is bootstrapped lazily from ADMIN_PASSWORD
+// (and, if set, ADMIN_USERNAME / ADMIN_EMAIL) the first time it's needed —
+// after that it's just a normal row, editable from /admin/settings. Further
+// admins are created from /admin/admins, confirmed via a one-time code
+// emailed to the creating admin (see AdminInvite). See server/src/auth.js.
 model AdminUser {
-  id           String   @id @default("admin")
-  username     String   @default("admin")
-  email        String?
+  id           String   @id @default(cuid())
+  username     String   @unique
+  email        String?  @unique
   passwordHash String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+// A pending "create new admin" request awaiting OTP confirmation from the
+// admin who initiated it (see server/src/routes/admin/admins.js). Short-lived
+// by design — rows are deleted on confirm, expiry, or being superseded by a
+// newer request from the same admin — so this intentionally isn't tied to
+// AdminUser with a foreign key.
+model AdminInvite {
+  id            String   @id @default(cuid())
+  requestedById String
+  username      String
+  email         String
+  passwordHash  String
+  otpHash       String
+  otpExpiresAt  DateTime
+  attempts      Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@index([requestedById])
 }
 
 enum InquiryStatus {

@@ -4,9 +4,10 @@ import { asyncRoute, clean, clientIp } from "../util.js";
 import {
   authenticatedAdmin,
   clearSessionCookie,
-  getAdminUser,
+  dashboardReady,
+  findAdminByIdentifier,
   setSessionCookie,
-  verifyCredentials,
+  verifyPasswordHash,
 } from "../auth.js";
 
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -27,8 +28,7 @@ authRouter.get(
 authRouter.post(
   "/login",
   asyncRoute(async (req, res) => {
-    const admin = await getAdminUser();
-    if (!admin) {
+    if (!(await dashboardReady())) {
       res.status(503).json({ error: "The admin dashboard is disabled — ADMIN_PASSWORD is not set." });
       return;
     }
@@ -48,7 +48,8 @@ authRouter.post(
       return;
     }
 
-    const ok = verifyCredentials(admin, identifier, password);
+    const admin = await findAdminByIdentifier(identifier);
+    const ok = Boolean(admin) && verifyPasswordHash(password, admin.passwordHash);
     await prisma.loginAttempt.create({ data: { ip, success: ok } });
 
     try {
@@ -64,7 +65,7 @@ authRouter.post(
       return;
     }
 
-    await setSessionCookie(req, res);
+    await setSessionCookie(req, res, admin);
     res.json({ ok: true });
   })
 );

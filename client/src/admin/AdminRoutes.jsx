@@ -13,6 +13,7 @@ import TeamEditor from "./TeamEditor.jsx";
 import Catalog from "./Catalog.jsx";
 import System from "./System.jsx";
 import Settings from "./Settings.jsx";
+import Admins from "./Admins.jsx";
 import AdminNotFound from "./AdminNotFound.jsx";
 
 /**
@@ -46,6 +47,7 @@ export default function AdminRoutes() {
           <Route path="catalog" element={<Catalog />} />
           <Route path="system" element={<System />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="admins" element={<Admins />} />
           <Route path="*" element={<AdminNotFound />} />
         </Route>
       </Routes>

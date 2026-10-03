@@ -17,7 +17,7 @@ adminAccountRouter.put(
   "/",
   asyncRoute(async (req, res) => {
     const { currentPassword, username, email, newPassword } = req.body || {};
-    const result = await updateAdminAccount({ currentPassword, username, email, newPassword });
+    const result = await updateAdminAccount({ adminId: req.admin.id, currentPassword, username, email, newPassword });
 
     if (result.error) {
       res.status(result.status || 400).json({ error: result.error });
