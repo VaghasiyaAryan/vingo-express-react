@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { AlertCircle, KeyRound, Loader2, Mail, Plus, ShieldCheck, Trash2, UserPlus, X } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, KeyRound, Loader2, Mail, Plus, ShieldCheck, Trash2, UserPlus, X } from "lucide-react";
 import { endpoints } from "@/lib/api.js";
 import { useApi } from "@/lib/useApi.js";
 import { useDocumentTitle } from "@/lib/useDocumentTitle.js";
@@ -16,7 +16,7 @@ function formatDate(value) {
 function buildUsername(firstName, lastName, dob) {
   const first = firstName.trim();
   const lastInitial = lastName.trim().charAt(0).toUpperCase();
-  const [, month, day] = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dob) || [];
+  const [, , month, day] = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dob) || [];
   if (!first || !lastInitial || !day || !month) return "";
   return `${first.charAt(0).toUpperCase()}${first.slice(1)}${lastInitial}${day}${month}`;
 }
@@ -42,6 +42,9 @@ function NewAdminPanel({ onCreated, onClose }) {
   // "AryanV2509"), but stops auto-updating the moment it's edited by hand —
   // same pattern as a slug field that unlocks once you touch it.
   const [usernameTouched, setUsernameTouched] = useState(false);
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const set = (field) => (event) => {
     const value = event.target.value;
@@ -231,30 +234,50 @@ function NewAdminPanel({ onCreated, onClose }) {
           <label className="field-label" htmlFor="new-password">
             Password *
           </label>
-          <input
-            id="new-password"
-            type="password"
-            autoComplete="new-password"
-            value={form.password}
-            onChange={set("password")}
-            required
-            className="field"
-          />
+          <div className="relative">
+            <input
+              id="new-password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              value={form.password}
+              onChange={set("password")}
+              required
+              className="field pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-ink-400 hover:text-ink-700"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
 
         <div>
           <label className="field-label" htmlFor="new-confirm-password">
             Confirm password *
           </label>
-          <input
-            id="new-confirm-password"
-            type="password"
-            autoComplete="new-password"
-            value={form.confirmPassword}
-            onChange={set("confirmPassword")}
-            required
-            className="field"
-          />
+          <div className="relative">
+            <input
+              id="new-confirm-password"
+              type={showConfirmPassword ? "text" : "password"}
+              autoComplete="new-password"
+              value={form.confirmPassword}
+              onChange={set("confirmPassword")}
+              required
+              className="field pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((v) => !v)}
+              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+              className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-ink-400 hover:text-ink-700"
+            >
+              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
 
         <p className="text-xs text-ink-500">
