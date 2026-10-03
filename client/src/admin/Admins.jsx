@@ -6,10 +6,19 @@ import { useDocumentTitle } from "@/lib/useDocumentTitle.js";
 import { useToast } from "./Toast.jsx";
 import ConfirmDialog from "./ConfirmDialog.jsx";
 
-const EMPTY_FORM = { username: "", email: "", password: "", confirmPassword: "" };
+const EMPTY_FORM = { firstName: "", lastName: "", dob: "", username: "", email: "", password: "", confirmPassword: "" };
 
 function formatDate(value) {
   return new Date(value).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+/** "Aryan" + "Vaghasiya" + "2004-09-25" -> "AryanV2509" (first name + last initial + day/month). */
+function buildUsername(firstName, lastName, dob) {
+  const first = firstName.trim();
+  const lastInitial = lastName.trim().charAt(0).toUpperCase();
+  const [, month, day] = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dob) || [];
+  if (!first || !lastInitial || !day || !month) return "";
+  return `${first.charAt(0).toUpperCase()}${first.slice(1)}${lastInitial}${day}${month}`;
 }
 
 /**
@@ -28,12 +37,36 @@ function NewAdminPanel({ onCreated, onClose }) {
   const [otpError, setOtpError] = useState(null);
   const [confirming, setConfirming] = useState(false);
 
-  const set = (field) => (event) => setForm((prev) => ({ ...prev, [field]: event.target.value }));
+  // The username auto-fills from first name + last initial + day/month of
+  // birth as those fields are typed (e.g. Aryan + Vaghasiya + 2004-09-25 ->
+  // "AryanV2509"), but stops auto-updating the moment it's edited by hand —
+  // same pattern as a slug field that unlocks once you touch it.
+  const [usernameTouched, setUsernameTouched] = useState(false);
+
+  const set = (field) => (event) => {
+    const value = event.target.value;
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      if (!usernameTouched && ["firstName", "lastName", "dob"].includes(field)) {
+        next.username = buildUsername(next.firstName, next.lastName, next.dob);
+      }
+      return next;
+    });
+  };
+
+  function handleUsernameChange(event) {
+    setUsernameTouched(true);
+    setForm((prev) => ({ ...prev, username: event.target.value }));
+  }
 
   async function handleSend(event) {
     event.preventDefault();
     setFormError(null);
 
+    if (!form.username) {
+      setFormError("Fill in first name, last name and date of birth to generate a username.");
+      return;
+    }
     if (form.password !== form.confirmPassword) {
       setFormError("Password and confirmation do not match.");
       return;
@@ -143,11 +176,40 @@ function NewAdminPanel({ onCreated, onClose }) {
           </p>
         )}
 
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="field-label" htmlFor="new-first-name">
+              First name *
+            </label>
+            <input id="new-first-name" value={form.firstName} onChange={set("firstName")} required className="field" />
+          </div>
+          <div>
+            <label className="field-label" htmlFor="new-last-name">
+              Last name *
+            </label>
+            <input id="new-last-name" value={form.lastName} onChange={set("lastName")} required className="field" />
+          </div>
+        </div>
+
+        <div>
+          <label className="field-label" htmlFor="new-dob">
+            Date of birth *
+          </label>
+          <input id="new-dob" type="date" value={form.dob} onChange={set("dob")} required className="field" />
+        </div>
+
         <div>
           <label className="field-label" htmlFor="new-username">
-            Username *
+            Username <span className="font-normal text-ink-500">(auto-generated — edit if you need to)</span>
           </label>
-          <input id="new-username" value={form.username} onChange={set("username")} required className="field" />
+          <input
+            id="new-username"
+            value={form.username}
+            onChange={handleUsernameChange}
+            required
+            className="field"
+            placeholder="Fill in the fields above"
+          />
         </div>
 
         <div>
