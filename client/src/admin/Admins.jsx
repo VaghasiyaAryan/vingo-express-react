@@ -23,9 +23,9 @@ function buildUsername(firstName, lastName, dob) {
 
 /**
  * New admins aren't self-service — the signed-in admin enters the new
- * account's full credentials, and an OTP emailed to THEIR OWN address
- * confirms the action before the account is actually created. That stops a
- * hijacked but already-open admin tab from silently adding a backdoor admin.
+ * account's full credentials, and an OTP emailed to the NEW ADMIN'S OWN
+ * address must be relayed back here to confirm the account. That proves the
+ * email is real and reachable before the account is actually created.
  */
 function NewAdminPanel({ onCreated, onClose }) {
   const [form, setForm] = useState(EMPTY_FORM);
@@ -113,8 +113,8 @@ function NewAdminPanel({ onCreated, onClose }) {
           Enter verification code
         </div>
         <p className="mt-2 text-sm text-ink-500">
-          We emailed a 6-digit code to <strong className="text-ink-700">{invite.sentTo}</strong> (your own admin
-          email). Enter it below to finish creating "{form.username}".
+          We emailed a 6-digit code to <strong className="text-ink-700">{invite.sentTo}</strong> — the new admin's
+          own address. Ask them for the code, then enter it below to finish creating "{form.username}".
         </p>
 
         <form onSubmit={handleConfirm} className="mt-5 space-y-4">
@@ -258,7 +258,8 @@ function NewAdminPanel({ onCreated, onClose }) {
         </div>
 
         <p className="text-xs text-ink-500">
-          We'll email a verification code to your own admin address before this account is created.
+          We'll email a verification code to the new admin's own address — ask them for it to finish creating the
+          account.
         </p>
 
         <button type="submit" disabled={sending} className="btn-primary disabled:opacity-70">

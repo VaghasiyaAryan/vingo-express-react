@@ -25,18 +25,13 @@ adminAdminsRouter.get(
 /**
  * Starts creating a new admin. The requester supplies the new admin's full
  * credentials directly — there's no self-service invite step for the new
- * admin. Instead, an OTP is emailed to the REQUESTER's own address as a
- * confirmation step before the account is actually created, so a hijacked
- * but already-open admin tab can't silently add a backdoor account.
+ * admin. Instead, an OTP is emailed to the NEW ADMIN'S OWN address and must
+ * be relayed back by whoever is setting the account up, proving that email
+ * is real and reachable before the account is actually created.
  */
 adminAdminsRouter.post(
   "/",
   asyncRoute(async (req, res) => {
-    if (!req.admin.email) {
-      res.status(400).json({ error: "Add an email to your own account in Settings before creating new admins." });
-      return;
-    }
-
     const username = clean(req.body?.username, 80);
     const email = clean(req.body?.email, 200).toLowerCase();
     const password = String(req.body?.password ?? "");
@@ -91,20 +86,20 @@ adminAdminsRouter.post(
 
     const html = `
       <div style="font-family:sans-serif;font-size:14px;color:#0f172a;line-height:1.6;">
-        <p>A new admin account is being created on the VinGo International admin panel:</p>
+        <p>An admin account is being created for you on the VinGo International admin panel by <strong>${escapeHtml(req.admin.username)}</strong>:</p>
         <table style="border-collapse:collapse;margin:12px 0;">
           <tr><td style="padding:2px 12px 2px 0;color:#64748b;">Username</td><td><strong>${escapeHtml(username)}</strong></td></tr>
           <tr><td style="padding:2px 12px 2px 0;color:#64748b;">Email</td><td><strong>${escapeHtml(email)}</strong></td></tr>
         </table>
-        <p>Your verification code:</p>
+        <p>Verification code:</p>
         <p style="font-size:28px;font-weight:700;letter-spacing:4px;margin:8px 0;">${otp}</p>
-        <p style="color:#64748b;">This code expires in 10 minutes. If you didn't request this, change your own password immediately.</p>
+        <p style="color:#64748b;">Share this code with ${escapeHtml(req.admin.username)} to finish setting up the account. It expires in 10 minutes. If you weren't expecting this, you can ignore this email.</p>
       </div>
     `;
 
     let result;
     try {
-      result = await sendMail({ to: req.admin.email, subject: "Confirm new admin account — VinGo Admin", html });
+      result = await sendMail({ to: email, subject: "Your VinGo admin account — verification code", html });
     } catch (err) {
       await prisma.adminInvite.delete({ where: { id: invite.id } }).catch(() => {});
       res.status(502).json({ error: `Failed to send the verification code: ${err.message}` });
@@ -117,7 +112,7 @@ adminAdminsRouter.post(
       return;
     }
 
-    res.json({ inviteId: invite.id, expiresAt: invite.otpExpiresAt, sentTo: req.admin.email });
+    res.json({ inviteId: invite.id, expiresAt: invite.otpExpiresAt, sentTo: email });
   })
 );
 
