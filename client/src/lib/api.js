@@ -43,7 +43,11 @@ export function onRequestCountChange(listener) {
 
 // ----------------------------------------------------------------- request
 
-async function request(path, { method = "GET", body, signal, background = false } = {}) {
+/**
+ * `body` is sent as JSON. A `file` (a File or Blob) is sent as-is instead,
+ * with its own type as the Content-Type — used for photo uploads.
+ */
+async function request(path, { method = "GET", body, file, signal, background = false } = {}) {
   if (!background) {
     inFlight += 1;
     notify();
@@ -53,8 +57,8 @@ async function request(path, { method = "GET", body, signal, background = false 
     const response = await fetch(path, {
       method,
       signal,
-      headers: body === undefined ? undefined : { "Content-Type": "application/json" },
-      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: file ? { "Content-Type": file.type } : body === undefined ? undefined : { "Content-Type": "application/json" },
+      body: file ?? (body === undefined ? undefined : JSON.stringify(body)),
     });
 
     // 204 and HEAD responses have nothing to parse.
@@ -122,5 +126,6 @@ export const endpoints = {
     updateProduct: (id, data) => api.put(`/api/admin/products/${id}`, data),
     setProductActive: (id, active) => api.patch(`/api/admin/products/${id}/active`, { active }),
     deleteProduct: (id) => api.delete(`/api/admin/products/${id}`),
+    uploadImage: (file) => request("/api/admin/images", { method: "POST", file }),
   },
 };

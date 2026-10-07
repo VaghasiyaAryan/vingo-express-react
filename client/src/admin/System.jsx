@@ -90,7 +90,7 @@ const SERVICES = [
   { key: "inquiry", icon: Globe, title: "Enquiry Form", desc: "POST /api/inquiry" },
   { key: "catalog", icon: FileText, title: "Catalogue PDF", desc: "GET /api/catalog" },
   { key: "email", icon: Mail, title: "Email Notifications", desc: "Resend API" },
-  { key: "uploads", icon: ImageUp, title: "Product Photo Uploads", desc: "Vercel Blob" },
+  { key: "uploads", icon: ImageUp, title: "Product Photo Uploads", desc: "Stored in the database" },
   { key: "whatsapp", icon: MessageCircle, title: "WhatsApp Click-to-Chat", desc: "wa.me deep links" },
   { key: "analytics", icon: BarChart3, title: "Analytics", desc: "Client-side event tracking" },
 ];

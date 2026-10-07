@@ -1,7 +1,8 @@
-import { Router } from "express";
+import express, { Router } from "express";
 import { prisma } from "../../prisma.js";
 import { asyncRoute } from "../../util.js";
-import { emailConfigured, uploadsConfigured } from "../../config.js";
+import { emailConfigured } from "../../config.js";
+import { IMAGE_TYPES, MAX_IMAGE_BYTES } from "../images.js";
 import { company, productCategories } from "../../../../shared/content.js";
 
 export const adminSystemRouter = Router();
@@ -36,7 +37,7 @@ adminSystemRouter.get(
 adminSystemRouter.get("/config", (req, res) => {
   res.json({
     emailConfigured: emailConfigured(),
-    uploadsConfigured: uploadsConfigured(),
+    uploadsConfigured: true,
     catalogUrl: `${company.websiteUrl}/api/catalog`,
   });
 });
@@ -99,39 +100,23 @@ adminSystemRouter.get(
 );
 
 /**
- * Issues short-lived client tokens so the browser can upload product photos
- * directly to Blob storage, rather than streaming multi-megabyte files
- * through this API.
+ * Stores a product photo sent as the raw request body (Content-Type set to
+ * the image's type) and returns the URL the product form saves.
  */
 adminSystemRouter.post(
-  "/upload-token",
+  "/images",
+  express.raw({ type: IMAGE_TYPES, limit: MAX_IMAGE_BYTES }),
   asyncRoute(async (req, res) => {
-    if (!uploadsConfigured()) {
-      res.status(503).json({
-        error: "Image uploads are not configured — set BLOB_READ_WRITE_TOKEN, or paste an image URL instead.",
-      });
+    const contentType = req.get("content-type");
+    if (!IMAGE_TYPES.includes(contentType) || !Buffer.isBuffer(req.body) || req.body.length === 0) {
+      res.status(400).json({ error: "Please choose a JPEG, PNG, WebP or AVIF image." });
       return;
     }
 
-    const { handleUpload } = await import("@vercel/blob/client");
-
-    try {
-      const jsonResponse = await handleUpload({
-        body: req.body,
-        request: req,
-        onBeforeGenerateToken: async () => ({
-          allowedContentTypes: ["image/jpeg", "image/png", "image/webp", "image/avif"],
-          maximumSizeInBytes: 12 * 1024 * 1024,
-          addRandomSuffix: true,
-        }),
-        // Fired by Blob storage as a webhook once the upload lands. Nothing to
-        // record on our side — the product form already holds the returned URL
-        // — but the handler is required, and it never runs on localhost.
-        onUploadCompleted: async () => {},
-      });
-      res.json(jsonResponse);
-    } catch (error) {
-      res.status(400).json({ error: error.message });
-    }
+    const image = await prisma.image.create({
+      data: { contentType, sizeBytes: req.body.length, data: req.body },
+      select: { id: true },
+    });
+    res.status(201).json({ url: `/api/images/${image.id}` });
   })
 );

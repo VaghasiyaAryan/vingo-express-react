@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { upload } from "@vercel/blob/client";
 import { AlertCircle, ImagePlus, Loader2, Save, X } from "lucide-react";
 import { productCategories } from "@shared/content.js";
+import { endpoints } from "@/lib/api.js";
 
 const FORM_OPTIONS = ["flakes", "slices", "dices", "granules", "powder", "blend"];
 const DEFAULT_COLORS = { base: "#f1f5f9", accent: "#cbd5e1", deep: "#94a3b8" };
-const MAX_UPLOAD_BYTES = 12 * 1024 * 1024;
+// Matches MAX_IMAGE_BYTES in server/src/routes/images.js.
+const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 function ImageField({ value, onChange, onUploadingChange }) {
   const [objectUrl, setObjectUrl] = useState(null);
@@ -34,7 +35,7 @@ function ImageField({ value, onChange, onUploadingChange }) {
 
     setUploadError(null);
     if (picked.size > MAX_UPLOAD_BYTES) {
-      setUploadError("Image is too large — please use a file under 12 MB.");
+      setUploadError("Image is too large — please use a file under 5 MB (around 1200px wide is plenty).");
       if (inputRef.current) inputRef.current.value = "";
       return;
     }
@@ -45,14 +46,8 @@ function ImageField({ value, onChange, onUploadingChange }) {
     setUploading(true);
 
     try {
-      // Uploads straight from the browser to Blob storage — the file bytes
-      // never pass through the API, so a 10MB photo does not have to be
-      // buffered and re-sent by the Express process.
-      const blob = await upload(`products/${Date.now()}-${picked.name}`, picked, {
-        access: "public",
-        handleUploadUrl: "/api/admin/upload-token",
-      });
-      onChange(blob.url);
+      const { url } = await endpoints.admin.uploadImage(picked);
+      onChange(url);
     } catch (err) {
       setUploadError(err.message || "Upload failed. Please try again.");
       setObjectUrl(null);

@@ -140,6 +140,7 @@ Public:
 | `POST` | `/api/inquiry` | Enquiry form submission (validated, honeypot-protected) |
 | `GET` | `/api/catalog` | The catalogue PDF, generated fresh per request |
 | `GET` | `/api/vcard` | The business card `.vcf` |
+| `GET` | `/api/images/:id` | A product photo uploaded from the admin panel |
 
 Session:
 
@@ -164,7 +165,7 @@ Admin — every route below requires the session cookie and returns `401` withou
 | `GET` `POST` | `/api/admin/products` | List all / create |
 | `GET` `PUT` `DELETE` | `/api/admin/products/:id` | Read / update / delete |
 | `PATCH` | `/api/admin/products/:id/active` | Show or hide on the public site |
-| `POST` | `/api/admin/upload-token` | Short-lived token for direct photo upload |
+| `POST` | `/api/admin/images` | Upload a product photo (stored in the database) |
 
 ### Admin sign-in
 

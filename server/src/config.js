@@ -30,5 +30,3 @@ export const clientDist = process.env.CLIENT_DIST
 export const publicDir = path.join(projectRoot, "public");
 
 export const emailConfigured = () => Boolean(process.env.RESEND_API_KEY && process.env.INQUIRY_NOTIFY_TO);
-
-export const uploadsConfigured = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);

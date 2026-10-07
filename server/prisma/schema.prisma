@@ -39,7 +39,7 @@ model Inquiry {
 }
 
 // Brute-force protection for /admin/login. DB-backed (not in-memory) because
-// Vercel serverless functions don't share memory across cold starts.
+// the API may restart or run as more than one process.
 model LoginAttempt {
   id        String   @id @default(cuid())
   ip        String
@@ -69,4 +69,15 @@ model Product {
 
   @@index([category])
   @@index([active])
+}
+
+// A product photo uploaded from the admin panel, served at /api/images/:id.
+// Kept in Postgres rather than on disk because GoDaddy's app containers are
+// rebuilt on every deploy — files written next to the app would vanish.
+model Image {
+  id          String   @id @default(cuid())
+  contentType String
+  sizeBytes   Int
+  data        Bytes
+  createdAt   DateTime @default(now())
 }
