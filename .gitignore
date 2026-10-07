@@ -7,3 +7,8 @@ dist
 *.db-journal
 .DS_Store
 !.env.example
+.npm-cache-fresh
+
+# Lockfiles from Windows dev break native optional deps (Rollup, esbuild) on
+# GoDaddy's Linux build, so each environment resolves its own.
+package-lock.json

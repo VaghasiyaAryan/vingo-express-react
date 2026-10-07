@@ -1,0 +1,14 @@
+{
+  "name": "vingo-express-react",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Entry point for Node.js hosting (GoDaddy): builds the React client, then runs Express, which serves the built app and the API on one port.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "npm install --prefix server --include=dev --cache=.npm-cache-fresh && npm install --prefix client --include=dev --cache=.npm-cache-fresh && npm run build --prefix client",
+    "start": "npm start --prefix server"
+  }
+}

@@ -5,6 +5,13 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
+  // GoDaddy builds on a Debian image but runs on Alpine/musl with only
+  // OpenSSL 3, so the runtime engine has to be bundled explicitly.
+  // `native` covers local development.
+  binaryTargets   = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x", "linux-musl-openssl-3.0.x"]
+  // GoDaddy's network blocks outbound TCP on 5432. The Neon driver adapter
+  // (see src/prisma.js) sends queries over WebSockets on port 443 instead.
+  previewFeatures = ["driverAdapters"]
 }
 
 enum InquiryStatus {
