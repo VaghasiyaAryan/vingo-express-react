@@ -1,5 +1,5 @@
 // One-time / disaster-recovery seed: populates the Product table from the
-// original static catalogue in prisma/seedData.js. No-ops if the table
+// original static catalogue in prisma/seedData.cjs. No-ops if the table
 // already has rows, so it is safe to re-run and never clobbers edits made
 // through the admin dashboard.
 //
@@ -9,9 +9,9 @@ import "../src/env.js";
 import { createRequire } from "node:module";
 import { prisma } from "../src/prisma.js";
 
-// prisma/seedData.js is CommonJS, so it needs require rather than import.
+// prisma/seedData.cjs is CommonJS, so it needs require rather than import.
 const require = createRequire(import.meta.url);
-const products = require("../prisma/seedData.js");
+const products = require("../prisma/seedData.cjs");
 
 async function main() {
   const existing = await prisma.product.count();
