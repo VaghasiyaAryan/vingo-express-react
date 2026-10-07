@@ -1,0 +1,7 @@
+{
+  "name": "vingo-shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Site copy and reference data shared by the Express server and the React client. No framework dependencies — it must stay importable from both Node and the browser."
+}
