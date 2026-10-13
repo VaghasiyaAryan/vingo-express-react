@@ -9,6 +9,9 @@ import Enquiries from "./Enquiries.jsx";
 import ProductsList from "./ProductsList.jsx";
 import ProductEditor from "./ProductEditor.jsx";
 import Catalog from "./Catalog.jsx";
+import Homepage from "./Homepage.jsx";
+import Security from "./Security.jsx";
+import Admins from "./Admins.jsx";
 import System from "./System.jsx";
 import AdminNotFound from "./AdminNotFound.jsx";
 
@@ -38,6 +41,9 @@ export default function AdminRoutes() {
           <Route path="products/new" element={<ProductEditor mode="create" />} />
           <Route path="products/:id/edit" element={<ProductEditor mode="edit" />} />
           <Route path="catalog" element={<Catalog />} />
+          <Route path="homepage" element={<Homepage />} />
+          <Route path="security" element={<Security />} />
+          <Route path="admins" element={<Admins />} />
           <Route path="system" element={<System />} />
           <Route path="*" element={<AdminNotFound />} />
         </Route>

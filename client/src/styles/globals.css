@@ -80,7 +80,7 @@
   }
 
   .glass-card {
-    @apply rounded-3xl border border-white/60 bg-white/50 p-7 shadow-glass backdrop-blur-xl backdrop-saturate-150 transition-all duration-500;
+    @apply rounded-3xl border border-white/60 bg-white/50 p-5 sm:p-7 shadow-glass backdrop-blur-xl backdrop-saturate-150 transition-all duration-500;
   }
 
   .btn {

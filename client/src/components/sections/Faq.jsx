@@ -7,7 +7,7 @@ export default function Faq() {
   const [open, setOpen] = useState(0);
 
   return (
-    <section id="faq" className="py-20 lg:py-28">
+    <section id="faq" className="py-14 sm:py-20 lg:py-28">
       <div className="container-x grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
         <Reveal>
           <span className="section-eyebrow">FAQ</span>

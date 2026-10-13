@@ -3,6 +3,10 @@ import { Route, Routes } from "react-router-dom";
 
 import ScrollBehaviour from "./components/ScrollBehaviour.jsx";
 import Home from "./pages/Home.jsx";
+import AboutPage from "./pages/AboutPage.jsx";
+import ProductsPage from "./pages/ProductsPage.jsx";
+import FaqPage from "./pages/FaqPage.jsx";
+import ContactPage from "./pages/ContactPage.jsx";
 import Product from "./pages/Product.jsx";
 import BusinessCard from "./pages/BusinessCard.jsx";
 import NotFound from "./pages/NotFound.jsx";
@@ -20,7 +24,11 @@ export default function App() {
       <ScrollBehaviour />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/products" element={<ProductsPage />} />
         <Route path="/products/:slug" element={<Product />} />
+        <Route path="/faq" element={<FaqPage />} />
+        <Route path="/contact" element={<ContactPage />} />
         <Route path="/card" element={<BusinessCard />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-and-conditions" element={<Terms />} />

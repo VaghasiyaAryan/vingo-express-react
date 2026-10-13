@@ -43,7 +43,7 @@ export default function Product() {
               Home
             </Link>
             <ChevronRight className="h-3 w-3" />
-            <Link to="/#products" className="hover:text-navy-700">
+            <Link to="/products" className="hover:text-navy-700">
               Products
             </Link>
             {product && (
@@ -81,7 +81,7 @@ export default function Product() {
                   <ProductCtas
                     slug={product.slug}
                     name={product.name}
-                    enquireHref={`/?product=${product.slug}#enquiry`}
+                    enquireHref={`/contact?product=${product.slug}#enquiry`}
                     whatsappHref={quoteWhatsappLink(product.name)}
                     mailtoHref={quoteMailtoLink(product.name)}
                   />

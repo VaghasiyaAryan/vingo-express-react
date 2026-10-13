@@ -81,6 +81,28 @@ function defaults() {
   };
 }
 
+/** The main site pages besides the homepage. Titles match useDocumentTitle() in each client page. */
+const SITE_PAGES = {
+  "/about": {
+    title: "About Us",
+    description: `${company.shortName} sources, dehydrates and exports fruits, vegetables, powders and instant food mixes from India — how we work, our quality process and the markets we ship to.`,
+  },
+  "/products": {
+    title: "Products",
+    description:
+      "Dehydrated fruits, dehydrated vegetables, fruit and vegetable powders and instant food mixes — supplied to your cut size, mesh and packaging specification.",
+  },
+  "/faq": {
+    title: "Frequently Asked Questions",
+    description: "Answers on samples, minimum order quantities, packaging, documentation and shipping for bulk buyers.",
+    jsonLd: [faqLd],
+  },
+  "/contact": {
+    title: "Contact Us",
+    description: `Request a quotation or samples from ${company.shortName} — by enquiry form, phone, email or WhatsApp. We usually reply within one working day.`,
+  },
+};
+
 const LEGAL_PAGES = {
   "/privacy-policy": {
     title: "Privacy Policy",
@@ -136,7 +158,7 @@ async function productMeta(slug) {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "Home", item: BASE },
-          { "@type": "ListItem", position: 2, name: "Products", item: `${BASE}/#products` },
+          { "@type": "ListItem", position: 2, name: "Products", item: `${BASE}/products` },
           { "@type": "ListItem", position: 3, name: product.name, item: url },
         ],
       },
@@ -199,24 +221,24 @@ export async function resolveMeta(pathname) {
   const path = pathname.replace(/\/+$/, "") || "/";
 
   try {
-    if (path === "/") return { ...defaults(), jsonLd: [organizationLd, faqLd] };
+    if (path === "/") return { ...defaults(), jsonLd: [organizationLd] };
     if (path === "/card") return cardMeta();
 
     if (path === "/admin" || path.startsWith("/admin/")) {
       return { ...defaults(), title: titled("Admin"), canonical: null, robots: NOINDEX, jsonLd: [] };
     }
 
-    const legal = LEGAL_PAGES[path];
-    if (legal) {
+    const page = SITE_PAGES[path] ?? LEGAL_PAGES[path];
+    if (page) {
       const url = `${BASE}${path}`;
-      const title = titled(legal.title);
+      const title = titled(page.title);
       return {
         ...defaults(),
         title,
-        description: legal.description,
+        description: page.description,
         canonical: url,
-        openGraph: { ...defaults().openGraph, url, title, description: legal.description },
-        jsonLd: [],
+        openGraph: { ...defaults().openGraph, url, title, description: page.description },
+        jsonLd: page.jsonLd ?? [],
       };
     }
 

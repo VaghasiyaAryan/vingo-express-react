@@ -41,23 +41,26 @@ const socialLinks = [
   },
 ];
 
-// Absolute "/#section" so these still work from /products/:slug and the
-// legal pages, where a bare fragment has nothing to scroll to.
+// Why Us, Process and Global Reach are sections of the About page;
+// ScrollBehaviour scrolls to the #fragment once that page renders.
 const quickLinks = [
-  { href: "/#about", label: "About Us" },
-  { href: "/#products", label: "Products" },
-  { href: "/#why-us", label: "Why Choose Us" },
-  { href: "/#process", label: "Our Process" },
-  { href: "/#reach", label: "Global Reach" },
-  { href: "/#enquiry", label: "Request a Quote" },
+  { href: "/about", label: "About Us" },
+  { href: "/products", label: "Products" },
+  { href: "/about#why-us", label: "Why Choose Us" },
+  { href: "/about#process", label: "Our Process" },
+  { href: "/about#reach", label: "Global Reach" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/contact", label: "Request a Quote" },
 ];
 
 export default function Footer() {
   return (
     <footer className="border-t border-slate-200 bg-slate-50/80">
-      <div className="container-x py-14 lg:py-16">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
-          <div className="lg:pr-6">
+      <div className="container-x py-10 sm:py-14 lg:py-16">
+        {/* Phones and tablets: brand and contact span the width, the two link
+            lists sit side by side. Desktop: four columns. */}
+        <div className="grid grid-cols-2 gap-x-6 gap-y-9 sm:gap-y-10 lg:grid-cols-4">
+          <div className="col-span-2 lg:col-span-1 lg:pr-6">
             <Logo />
             <p className="mt-5 text-sm leading-relaxed text-ink-500">
               Exporters of dehydrated fruits, vegetables, fruit and vegetable powders, and dehydrated instant food
@@ -106,7 +109,10 @@ export default function Footer() {
             <ul className="mt-5 space-y-3">
               {productCategories.map((cat) => (
                 <li key={cat.slug}>
-                  <Link to="/#products" className="text-sm text-ink-500 transition-colors hover:text-navy-700">
+                  <Link
+                    to={`/products?category=${cat.slug}`}
+                    className="text-sm text-ink-500 transition-colors hover:text-navy-700"
+                  >
                     {cat.title}
                   </Link>
                 </li>
@@ -114,7 +120,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          <div>
+          <div className="col-span-2 lg:col-span-1">
             <h3 className="font-display text-sm font-bold uppercase tracking-wider text-ink-900">Contact</h3>
             <ul className="mt-5 space-y-4 text-sm text-ink-500">
               <li className="flex items-start gap-3">
@@ -148,7 +154,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-200 pt-7 sm:flex-row">
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-slate-200 pt-7 sm:mt-12 sm:flex-row">
           <p className="text-xs text-ink-500">
             © {new Date().getFullYear()} {company.name}. All rights reserved.
           </p>

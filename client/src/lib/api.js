@@ -102,12 +102,14 @@ export const api = {
 
 export const endpoints = {
   session: (options) => api.get("/api/auth/session", options),
-  login: (password) => api.post("/api/auth/login", { password }),
+  loginSetup: (options) => api.get("/api/auth/setup", options),
+  login: (email, password) => api.post("/api/auth/login", { email, password }),
   logout: () => api.post("/api/auth/logout"),
 
   products: (options) => api.get("/api/products", options),
   product: (slug, options) => api.get(`/api/products/${encodeURIComponent(slug)}`, options),
   submitInquiry: (payload) => api.post("/api/inquiry", payload),
+  heroItems: (options) => api.get("/api/settings/hero-items", options),
 
   admin: {
     stats: (options) => api.get("/api/admin/stats", options),
@@ -127,5 +129,17 @@ export const endpoints = {
     setProductActive: (id, active) => api.patch(`/api/admin/products/${id}/active`, { active }),
     deleteProduct: (id) => api.delete(`/api/admin/products/${id}`),
     uploadImage: (file) => request("/api/admin/images", { method: "POST", file }),
+
+    admins: (options) => api.get("/api/admin/admins", options),
+    createAdmin: (data) => api.post("/api/admin/admins", data),
+    setAdminRole: (id, role) => api.patch(`/api/admin/admins/${id}/role`, { role }),
+    resetAdminPassword: (id, password) => api.post(`/api/admin/admins/${id}/password`, { password }),
+    deleteAdmin: (id) => api.delete(`/api/admin/admins/${id}`),
+
+    passwordInfo: (options) => api.get("/api/admin/password", options),
+    changePassword: (currentPassword, newPassword) => api.post("/api/admin/password", { currentPassword, newPassword }),
+
+    heroItems: (options) => api.get("/api/admin/settings/hero-items", options),
+    saveHeroItems: (items) => api.put("/api/admin/settings/hero-items", { items }),
   },
 };

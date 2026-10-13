@@ -33,7 +33,7 @@ export default defineConfig({
   },
 
   server: {
-    port: 5173,
+    port: 8080,
     // shared/ sits outside this package's root, so Vite needs permission to
     // read it.
     fs: { allow: [projectRoot] },

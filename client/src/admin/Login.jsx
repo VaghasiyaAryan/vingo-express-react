@@ -10,9 +10,12 @@ export default function Login() {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [pending, setPending] = useState(false);
+  // Before the first admin account exists, only the shared password is asked for.
+  const [accountsExist, setAccountsExist] = useState(true);
 
   // Already signed in? Skip the form.
   useEffect(() => {
@@ -25,6 +28,12 @@ export default function Login() {
       .catch(() => {
         // Not signed in, or the server is unreachable — either way, show the form.
       });
+    endpoints
+      .loginSetup({ signal: controller.signal })
+      .then((setup) => setAccountsExist(setup.accountsExist))
+      .catch(() => {
+        // Keep asking for an email — the safer default.
+      });
     return () => controller.abort();
   }, [navigate]);
 
@@ -34,7 +43,7 @@ export default function Login() {
     setError(null);
 
     try {
-      await endpoints.login(password);
+      await endpoints.login(accountsExist ? email : "", password);
       navigate(location.state?.from || "/admin", { replace: true });
     } catch (err) {
       setError(err.message);
@@ -49,9 +58,30 @@ export default function Login() {
           <Logo />
         </div>
         <h1 className="mt-8 text-center font-display text-2xl font-bold text-ink-900">Admin Access</h1>
-        <p className="mt-2 text-center text-sm text-ink-500">Sign in to view website enquiries.</p>
+        <p className="mt-2 text-center text-sm text-ink-500">
+          {accountsExist ? "Sign in with your admin email and password." : "Sign in with the shared admin password."}
+        </p>
 
         <form onSubmit={handleSubmit} className="mt-8">
+          {accountsExist && (
+            <div className="mb-4">
+              <label htmlFor="email" className="field-label">
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="username"
+                className={`field ${error ? "field-error" : ""}`}
+                placeholder="you@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoFocus
+              />
+            </div>
+          )}
           <label htmlFor="password" className="field-label">
             Password
           </label>
@@ -61,11 +91,11 @@ export default function Login() {
             type="password"
             autoComplete="current-password"
             className={`field ${error ? "field-error" : ""}`}
-            placeholder="Enter admin password"
+            placeholder={accountsExist ? "Your password" : "Enter admin password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            autoFocus
+            autoFocus={!accountsExist}
           />
 
           {error && (

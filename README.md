@@ -54,7 +54,7 @@ npm install --prefix client
 npm run dev --prefix client
 ```
 
-Open <http://localhost:5173>. The Vite dev server proxies `/api`, `/sitemap.xml` and
+Open <http://localhost:8080>. The Vite dev server proxies `/api`, `/sitemap.xml` and
 `/robots.txt` to Express on port 4000, so the browser only ever sees one origin — which
 is what keeps the admin session cookie working without any CORS configuration.
 
@@ -169,8 +169,18 @@ Admin — every route below requires the session cookie and returns `401` withou
 
 ### Admin sign-in
 
-Unchanged in substance: one password (`ADMIN_PASSWORD`), which also signs the session
-cookie, so changing the password signs every session out. Repeated failures from one IP
+Each admin has their own account (email + password, stored as a salted scrypt hash) and a
+role: **Owners** can do everything including managing admins (**Admin → Admins**);
+**Editors** can do everything except manage admins. Nobody can remove or demote themselves,
+and the last Owner can never be removed.
+
+Until the first account exists, the shared `ADMIN_PASSWORD` signs in; the Admins page then
+asks you to create your own Owner account, and from that moment the shared password stops
+working. Changing a password (Admin → Security, or an Owner's "Reset password") signs that
+admin out everywhere.
+
+Locked out? `npm run admin:reset-password --prefix server -- you@example.com` prints a new
+password for that admin. Without an email it lists the accounts. Repeated failures from one IP
 are rate-limited to 5 per 15 minutes, recorded in the database so the limit survives a
 restart.
 
@@ -220,7 +230,8 @@ there and named the same. Add a GA4 (or Plausible, or Umami) snippet to
 | **The product catalogue** — products, specs, photos, visibility | `/admin/products`, no code changes needed |
 | **All other website text** — stats, countries, FAQs, contact details | `shared/content.js` |
 | Brand colours, fonts, animations | `client/tailwind.config.js` |
-| Page section order | `client/src/pages/Home.jsx` |
+| Pages and their section order — Home, About, Products, FAQ, Contact | `client/src/pages/` (routes in `client/src/App.jsx`) |
+| Main menu | `client/src/components/sections/Navbar.jsx` |
 | Individual sections | `client/src/components/sections/` |
 | Logo | `client/src/components/Logo.jsx`, `public/logo.svg` |
 | Page titles, descriptions, JSON-LD | `server/src/seo/meta.js` |

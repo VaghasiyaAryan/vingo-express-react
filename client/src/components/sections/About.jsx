@@ -1,11 +1,13 @@
-import { Check } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Check } from "lucide-react";
 import Reveal from "@/components/Reveal.jsx";
 import { about, processSteps } from "@shared/content.js";
 
-export default function About() {
+/** `moreLink` adds a link through to the full About page — used on the homepage. */
+export default function About({ moreLink = false }) {
   return (
-    <section id="about" className="relative border-y border-slate-100 bg-white py-20 lg:py-28">
-      <div className="container-x grid gap-14 lg:grid-cols-2 lg:gap-16">
+    <section id="about" className="relative border-y border-slate-100 bg-white py-14 sm:py-20 lg:py-28">
+      <div className="container-x grid gap-10 sm:gap-14 lg:grid-cols-2 lg:gap-16">
         <Reveal>
           <span className="section-eyebrow">About Us</span>
           <h2 className="section-title mt-5">{about.title}</h2>
@@ -24,6 +26,15 @@ export default function About() {
               </li>
             ))}
           </ul>
+          {moreLink && (
+            <Link
+              to="/about"
+              className="mt-9 inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 transition-all hover:gap-2.5"
+            >
+              More about us
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          )}
         </Reveal>
 
         <Reveal delay={0.12} className="relative">

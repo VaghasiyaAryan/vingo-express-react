@@ -90,6 +90,15 @@ export const hero = {
     { value: "100%", label: "Quality Checked" },
     { value: "24h", label: "Quote Turnaround" },
   ],
+  // The four buttons floating around the logo, each opening a product page
+  // (an empty slug opens the full catalogue). These are only the defaults —
+  // once saved from Admin → Homepage, the database copy wins.
+  floatingProducts: [
+    { label: "Mango Powder", slug: "mango-powder" },
+    { label: "Onion Flakes", slug: "white-onion" },
+    { label: "Instant Khichdi", slug: "khichdi-mix" },
+    { label: "Beetroot Powder", slug: "beetroot-powder" },
+  ],
 };
 
 export const about = {

@@ -4,7 +4,7 @@ import { globalMarkets, testimonials } from "@shared/content.js";
 
 export default function GlobalReach() {
   return (
-    <section id="reach" className="border-y border-slate-100 bg-white py-20 lg:py-28">
+    <section id="reach" className="border-y border-slate-100 bg-white py-14 sm:py-20 lg:py-28">
       <div className="container-x">
         <Reveal className="mx-auto max-w-2xl text-center">
           <span className="section-eyebrow">

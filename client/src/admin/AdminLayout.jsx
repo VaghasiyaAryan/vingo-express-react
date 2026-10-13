@@ -6,7 +6,7 @@ import NavigationProgress from "./NavigationProgress.jsx";
 import { useSession } from "./RequireAuth.jsx";
 
 export default function AdminLayout() {
-  const { signOut } = useSession();
+  const { admin, signOut } = useSession();
   const navigate = useNavigate();
 
   async function handleSignOut() {
@@ -27,6 +27,12 @@ export default function AdminLayout() {
           <AdminNav />
         </div>
         <div className="border-t border-slate-100 p-3">
+          {admin && (
+            <p className="mb-2 truncate px-1 text-xs text-ink-500" title={admin.email ?? undefined}>
+              Signed in as <span className="font-semibold text-ink-700">{admin.name}</span>
+              {!admin.shared && <> · {admin.role === "OWNER" ? "Owner" : "Editor"}</>}
+            </p>
+          )}
           <button type="button" onClick={handleSignOut} className="btn-ghost w-full !py-2.5 text-sm">
             <LogOut className="h-4 w-4" /> Sign out
           </button>

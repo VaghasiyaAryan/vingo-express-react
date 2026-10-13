@@ -105,7 +105,7 @@ export default function Enquiry({ products = [] }) {
     setForm((prev) => ({ ...prev, phone: formatNational(prev.phone, match?.fmt) }));
   }
 
-  // Arriving from a product page (/?product=<slug>#enquiry) prefills this form.
+  // Arriving from a product page (/contact?product=<slug>#enquiry) prefills this form.
   // `products` is fetched, so this has to re-run once it lands — on a cold load
   // the effect fires before the catalogue is back from the API.
   const [searchParams] = useSearchParams();
@@ -166,7 +166,7 @@ export default function Enquiry({ products = [] }) {
   }
 
   return (
-    <section id="enquiry" className="relative overflow-hidden py-20 lg:py-28">
+    <section id="enquiry" className="relative overflow-hidden py-14 sm:py-20 lg:py-28">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white via-navy-50/50 to-white" />
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute right-[6%] top-10 h-[280px] w-[280px] rounded-full bg-orange-200/25 blur-[110px]" />
@@ -342,7 +342,7 @@ export default function Enquiry({ products = [] }) {
                       type="tel"
                       inputMode="tel"
                       autoComplete="tel-national"
-                      className="w-full min-w-0 px-3 py-3 text-sm text-ink-900 placeholder:text-slate-400 focus:outline-none"
+                      className="min-w-0 flex-1 rounded-r-xl bg-transparent px-3 py-3 text-sm text-ink-900 placeholder:text-slate-400 focus:outline-none"
                       placeholder={phoneMeta.fmt ? phoneMeta.fmt.replace(/#/g, "0") : "Phone number"}
                       value={form.phone}
                       onChange={handlePhoneChange}

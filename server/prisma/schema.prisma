@@ -4,7 +4,7 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   // GoDaddy builds on a Debian image but runs on Alpine/musl with only
   // OpenSSL 3, so the runtime engine has to be bundled explicitly.
   // `native` covers local development.
@@ -69,6 +69,36 @@ model Product {
 
   @@index([category])
   @@index([active])
+}
+
+enum AdminRole {
+  OWNER // everything, including adding and removing admins
+  EDITOR // everything except managing admins
+}
+
+// A person who can sign in to the admin panel. Passwords are stored only as
+// salted scrypt hashes. Until the first row exists, the shared ADMIN_PASSWORD
+// signs in instead (see src/auth.js).
+model AdminUser {
+  id                String    @id @default(cuid())
+  name              String
+  email             String    @unique
+  role              AdminRole @default(EDITOR)
+  passwordHash      String
+  passwordSalt      String
+  passwordChangedAt DateTime  @default(now())
+  lastLoginAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+// Small pieces of website text editable from the admin panel, one row per
+// key (e.g. "heroFloatingLabels"). A missing row means "use the default from
+// shared/content.js".
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
 }
 
 // A product photo uploaded from the admin panel, served at /api/images/:id.

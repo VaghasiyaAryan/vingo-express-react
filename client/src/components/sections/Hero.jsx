@@ -1,9 +1,12 @@
 import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { motion, useInView, useMotionValue, useTransform, animate } from "framer-motion";
 import { ArrowRight, BadgeCheck, Ship, Sparkles } from "lucide-react";
 import { hero, company, whatsappLink } from "@shared/content.js";
 import { WhatsAppIcon } from "@/components/WhatsAppButton.jsx";
 import { LogoMark } from "@/components/Logo.jsx";
+import { endpoints } from "@/lib/api.js";
+import { useApi } from "@/lib/useApi.js";
 
 /**
  * Counts up to the stat value once it scrolls into view.
@@ -38,22 +41,31 @@ function StatValue({ value }) {
   );
 }
 
-const orbiting = [
-  { label: "Mango Powder", top: "6%", left: "8%", delay: 0 },
-  { label: "Onion Flakes", top: "24%", right: "-4%", delay: 0.6 },
-  { label: "Instant Khichdi", bottom: "16%", left: "-2%", delay: 1.2 },
-  { label: "Beetroot Powder", bottom: "2%", right: "10%", delay: 1.8 },
+// Where each floating button sits. Its label and the product it opens are
+// edited in Admin → Homepage.
+const orbitPositions = [
+  { top: "6%", left: "8%", delay: 0 },
+  { top: "24%", right: "-4%", delay: 0.6 },
+  { bottom: "16%", left: "-2%", delay: 1.2 },
+  { bottom: "2%", right: "10%", delay: 1.8 },
 ];
 
+const fetchHeroItems = (signal) => endpoints.heroItems({ signal, background: true });
+
 export default function Hero() {
+  // Buttons appear once loaded rather than flashing the defaults first; if the
+  // request fails, the defaults are the fallback.
+  const { data, error } = useApi(fetchHeroItems);
+  const items = data?.items ?? (error ? hero.floatingProducts : null);
+
   return (
-    <section id="top" className="relative overflow-hidden bg-mesh-light pt-28 pb-20 sm:pt-32 lg:pt-36 lg:pb-28">
+    <section id="top" className="relative overflow-hidden bg-mesh-light pt-24 pb-12 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-28">
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-navy-200/25 blur-[120px]" />
         <div className="absolute bottom-0 right-0 h-[380px] w-[380px] rounded-full bg-orange-200/25 blur-[100px]" />
       </div>
 
-      <div className="container-x grid items-center gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
+      <div className="container-x grid items-center gap-10 sm:gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
         <div>
           <motion.span
             initial={{ opacity: 0, y: 16 }}
@@ -92,10 +104,10 @@ export default function Hero() {
             transition={{ duration: 0.7, delay: 0.24 }}
             className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center"
           >
-            <a href="#enquiry" className="btn-primary">
+            <Link to="/contact" className="btn-primary">
               Request a Quotation
               <ArrowRight className="h-4 w-4" />
-            </a>
+            </Link>
             <a
               href={whatsappLink()}
               target="_blank"
@@ -127,7 +139,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.42 }}
-            className="mt-12 grid max-w-lg grid-cols-2 gap-x-6 gap-y-7 sm:grid-cols-4"
+            className="mt-9 grid max-w-lg grid-cols-2 gap-x-6 gap-y-6 sm:mt-12 sm:grid-cols-4 sm:gap-y-7"
           >
             {hero.stats.map((stat) => (
               <div key={stat.label} className="flex flex-col-reverse">
@@ -144,32 +156,49 @@ export default function Hero() {
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="relative mx-auto aspect-square w-full max-w-[440px]"
-          aria-hidden="true"
+          className="relative mx-auto aspect-square w-full max-w-[320px] sm:max-w-[440px]"
         >
-          <div className="absolute inset-[8%] rounded-full bg-gradient-to-br from-navy-100 via-white to-orange-100 shadow-[inset_0_2px_40px_rgba(46,44,117,0.12)]" />
-          <div className="absolute inset-[8%] animate-[spin_28s_linear_infinite] rounded-full border border-dashed border-orange-300/70" />
-          <div className="absolute inset-[20%] animate-[spin_20s_linear_infinite_reverse] rounded-full border border-navy-200" />
+          {/* Decorative rings and logo — hidden from screen readers; the
+              floating buttons below are real links and stay reachable. */}
+          <div aria-hidden="true">
+            <div className="absolute inset-[8%] rounded-full bg-gradient-to-br from-navy-100 via-white to-orange-100 shadow-[inset_0_2px_40px_rgba(46,44,117,0.12)]" />
+            <div className="absolute inset-[8%] animate-[spin_28s_linear_infinite] rounded-full border border-dashed border-orange-300/70" />
+            <div className="absolute inset-[20%] animate-[spin_20s_linear_infinite_reverse] rounded-full border border-navy-200" />
 
-          <div className="absolute inset-[26%] flex items-center justify-center rounded-full bg-white/85 shadow-glass backdrop-blur-sm">
-            <LogoMark className="h-[58%]" />
+            <div className="absolute inset-[26%] flex items-center justify-center rounded-full bg-white/85 shadow-glass backdrop-blur-sm">
+              <LogoMark className="h-[58%]" />
+            </div>
           </div>
 
-          {orbiting.map((chip) => (
-            <div
-              key={chip.label}
-              className="absolute animate-float rounded-full border border-white bg-white/90 px-4 py-2 text-xs font-semibold text-ink-700 shadow-glass backdrop-blur"
-              style={{
-                top: chip.top,
-                left: chip.left,
-                right: chip.right,
-                bottom: chip.bottom,
-                animationDelay: `${chip.delay}s`,
-              }}
-            >
-              {chip.label}
-            </div>
-          ))}
+          {items?.map((item, i) => {
+            const chip = orbitPositions[i];
+            if (!chip) return null;
+            // No product chosen (or it has since been hidden) — open the catalogue.
+            const href = item.slug ? `/products/${item.slug}` : "/products";
+            return (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: chip.delay * 0.25 }}
+                className="absolute z-10 animate-float"
+                style={{
+                  top: chip.top,
+                  left: chip.left,
+                  right: chip.right,
+                  bottom: chip.bottom,
+                  animationDelay: `${chip.delay}s`,
+                }}
+              >
+                <Link
+                  to={href}
+                  className="inline-flex items-center rounded-full border border-white bg-white/90 px-4 py-2 text-xs font-semibold text-ink-700 shadow-glass backdrop-blur transition-all duration-300 hover:border-orange-200 hover:bg-white hover:text-navy-700 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-400 focus-visible:ring-offset-2"
+                >
+                  {item.label}
+                </Link>
+              </motion.div>
+            );
+          })}
         </motion.div>
       </div>
     </section>

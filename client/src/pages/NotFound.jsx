@@ -24,7 +24,7 @@ export default function NotFound() {
               <Home className="h-4 w-4" />
               Back to homepage
             </Link>
-            <Link to="/#products" className="btn-ghost">
+            <Link to="/products" className="btn-ghost">
               <Search className="h-4 w-4" />
               Browse products
             </Link>

@@ -3,7 +3,7 @@ import { processSteps } from "@shared/content.js";
 
 export default function Process() {
   return (
-    <section id="process" className="relative overflow-hidden py-20 lg:py-28">
+    <section id="process" className="relative overflow-hidden py-14 sm:py-20 lg:py-28">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-mesh-light opacity-60" />
 
       <div className="container-x">

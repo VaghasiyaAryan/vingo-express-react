@@ -11,6 +11,7 @@ import { productsRouter } from "./routes/products.js";
 import { catalogRouter } from "./routes/catalog.js";
 import { vcardRouter } from "./routes/vcard.js";
 import { imagesRouter } from "./routes/images.js";
+import { settingsRouter } from "./routes/settings.js";
 import { adminRouter } from "./routes/admin/index.js";
 import { wellKnownRouter } from "./seo/wellKnown.js";
 import { serveApp } from "./seo/render.js";
@@ -34,6 +35,7 @@ export function createApp() {
   app.use("/api/catalog", catalogRouter);
   app.use("/api/vcard", vcardRouter);
   app.use("/api/images", imagesRouter);
+  app.use("/api/settings", settingsRouter);
   app.use("/api/admin", adminRouter);
 
   // Anything else under /api is a genuine 404 — never let it fall through to

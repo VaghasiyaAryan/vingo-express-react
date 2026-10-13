@@ -20,17 +20,18 @@ export function useSession() {
 
 export default function RequireAuth({ children }) {
   const location = useLocation();
-  const [state, setState] = useState({ status: "checking", authenticated: false });
+  // `admin` is who is signed in: { id, name, email, role: "OWNER" | "EDITOR", shared }.
+  const [state, setState] = useState({ status: "checking", authenticated: false, admin: null });
 
   const check = useCallback(async (signal) => {
     try {
-      const { authenticated } = await endpoints.session({ signal });
-      setState({ status: "ready", authenticated });
+      const { authenticated, admin } = await endpoints.session({ signal });
+      setState({ status: "ready", authenticated, admin: admin ?? null });
     } catch (err) {
       if (err?.name === "AbortError") return;
       // Treat an unreachable server as signed out rather than locking the
       // user into a spinner they cannot escape.
-      setState({ status: "ready", authenticated: false });
+      setState({ status: "ready", authenticated: false, admin: null });
     }
   }, []);
 
@@ -44,9 +45,12 @@ export default function RequireAuth({ children }) {
     try {
       await endpoints.logout();
     } finally {
-      setState({ status: "ready", authenticated: false });
+      setState({ status: "ready", authenticated: false, admin: null });
     }
   }, []);
+
+  /** After the server switches who this browser is signed in as (e.g. the first account was just created). */
+  const setAdmin = useCallback((admin) => setState((prev) => ({ ...prev, admin })), []);
 
   if (state.status === "checking") {
     return (
@@ -61,5 +65,9 @@ export default function RequireAuth({ children }) {
     return <Navigate to="/admin/login" replace state={{ from: location.pathname + location.search }} />;
   }
 
-  return <SessionContext.Provider value={{ signOut, recheck: check }}>{children}</SessionContext.Provider>;
+  return (
+    <SessionContext.Provider value={{ admin: state.admin, setAdmin, signOut, recheck: check }}>
+      {children}
+    </SessionContext.Provider>
+  );
 }

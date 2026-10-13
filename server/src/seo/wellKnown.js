@@ -13,7 +13,16 @@ export const wellKnownRouter = Router();
 
 const BASE = company.websiteUrl;
 
-const STATIC_ROUTES = ["", "/privacy-policy", "/terms-and-conditions", "/cookie-policy"];
+const STATIC_ROUTES = [
+  "",
+  "/about",
+  "/products",
+  "/faq",
+  "/contact",
+  "/privacy-policy",
+  "/terms-and-conditions",
+  "/cookie-policy",
+];
 
 wellKnownRouter.get(
   "/sitemap.xml",
