@@ -55,9 +55,14 @@ export function createApp() {
   // there can be cached forever — a change produces a new filename. The rest
   // of dist/ is the artwork copied out of public/, which keeps its name across
   // deploys and therefore has to be revalidated.
+  //
+  // `redirect: false` on both: the product photos live in a products/ folder,
+  // and without it a request for the /products page is answered with a 301 to
+  // the folder (/products/) instead of falling through to the page.
   app.use(
     express.static(clientDist, {
       index: false,
+      redirect: false,
       setHeaders(res, filePath) {
         if (!isProduction) {
           res.setHeader("Cache-Control", "no-store");
@@ -74,7 +79,7 @@ export function createApp() {
 
   // The same artwork straight from the repository, so the logo and product
   // photos still resolve when dist/ has not been built yet.
-  app.use(express.static(publicDir, { index: false, maxAge: isProduction ? "1h" : 0 }));
+  app.use(express.static(publicDir, { index: false, redirect: false, maxAge: isProduction ? "1h" : 0 }));
 
   // ----------------------------------------------------------- SPA shell
   app.use((req, res, next) => {
