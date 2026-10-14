@@ -22,8 +22,9 @@ export function useDocumentTitle(pageTitle) {
   }, [pageTitle]);
 }
 
+/** Mirrors the homepage title set by the server (server/src/seo/meta.js). */
 export function defaultTitle() {
-  return `${company.name} — Dehydrated Fruits, Vegetables & Powders Exporter`;
+  return `Dehydrated Fruits & Vegetables Exporter | ${company.shortName}`;
 }
 
 /** For the homepage, which uses the untemplated site-wide title. */

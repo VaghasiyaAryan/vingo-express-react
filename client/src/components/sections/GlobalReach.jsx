@@ -38,20 +38,23 @@ export default function GlobalReach() {
         </div>
       </div>
 
-      <div className="container-x mt-16 grid gap-6 md:grid-cols-3">
-        {testimonials.map((t, i) => (
-          <Reveal key={t.quote.slice(0, 24)} delay={i * 0.08}>
-            <figure className="card h-full">
-              <Quote className="h-7 w-7 text-navy-200" />
-              <blockquote className="mt-4 text-sm leading-relaxed text-ink-700">{t.quote}</blockquote>
-              <figcaption className="mt-6 border-t border-slate-100 pt-4">
-                <span className="block text-sm font-semibold text-ink-900">{t.name}</span>
-                <span className="block text-xs text-ink-500">{t.role}</span>
-              </figcaption>
-            </figure>
-          </Reveal>
-        ))}
-      </div>
+      {/* Only real client quotes are ever shown — see `testimonials` in shared/content.js. */}
+      {testimonials.length > 0 && (
+        <div className="container-x mt-16 grid gap-6 md:grid-cols-3">
+          {testimonials.map((t, i) => (
+            <Reveal key={t.quote.slice(0, 24)} delay={i * 0.08}>
+              <figure className="card h-full">
+                <Quote className="h-7 w-7 text-navy-200" />
+                <blockquote className="mt-4 text-sm leading-relaxed text-ink-700">{t.quote}</blockquote>
+                <figcaption className="mt-6 border-t border-slate-100 pt-4">
+                  <span className="block text-sm font-semibold text-ink-900">{t.name}</span>
+                  <span className="block text-xs text-ink-500">{t.role}</span>
+                </figcaption>
+              </figure>
+            </Reveal>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

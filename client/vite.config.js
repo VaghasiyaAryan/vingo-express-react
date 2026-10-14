@@ -15,7 +15,7 @@ const apiTarget = process.env.VITE_API_TARGET || "http://localhost:4000";
  * session cookie is httpOnly + SameSite=Lax, so a cross-origin dev setup
  * would silently drop it on every admin request.
  */
-const proxied = ["/api", "/sitemap.xml", "/robots.txt", "/manifest.webmanifest", "/manifest.json"];
+const proxied = ["/api", "/sitemap.xml", "/robots.txt", "/llms.txt", "/manifest.webmanifest", "/manifest.json"];
 
 export default defineConfig({
   plugins: [react()],
@@ -43,7 +43,24 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
-    // Enough to debug a production issue without shipping the sources.
+    // No source maps in production: the original source is not published.
     sourcemap: false,
+    // Flags stay separate files, fetched only when the country picker shows
+    // them. By default Vite inlines files under 4 KB into the JavaScript, which
+    // would put ~170 flags inside the Contact page's code.
+    assetsInlineLimit: (file) => (file.includes("flag-icons") ? false : undefined),
+    rollupOptions: {
+      output: {
+        // Libraries change far less often than the site's own code. In their
+        // own files they stay cached in visitors' browsers across deploys, so
+        // a content or styling change only re-downloads the small app chunk.
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom|@remix-run)[\\/]/.test(id)) return "vendor";
+          if (/[\\/]node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/.test(id)) return "animation";
+          return undefined;
+        },
+      },
+    },
   },
 });

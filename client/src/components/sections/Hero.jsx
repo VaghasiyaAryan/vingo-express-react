@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { motion, useInView, useMotionValue, useTransform, animate } from "framer-motion";
+import { m, useInView, useMotionValue, useTransform, animate } from "framer-motion";
 import { ArrowRight, BadgeCheck, Ship, Sparkles } from "lucide-react";
 import { hero, company, whatsappLink } from "@shared/content.js";
 import { WhatsAppIcon } from "@/components/WhatsAppButton.jsx";
@@ -36,7 +36,7 @@ function StatValue({ value }) {
 
   return (
     <span ref={ref}>
-      <motion.span>{rounded}</motion.span>
+      <m.span>{rounded}</m.span>
       {match[2]}
     </span>
   );
@@ -69,7 +69,7 @@ export default function Hero() {
 
       <div className="container-x grid items-center gap-10 sm:gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
         <div>
-          <motion.span
+          <m.span
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -77,9 +77,9 @@ export default function Hero() {
           >
             <Sparkles className="h-3.5 w-3.5" />
             {hero.eyebrow}
-          </motion.span>
+          </m.span>
 
-          <motion.h1
+          <m.h1
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.08 }}
@@ -89,18 +89,18 @@ export default function Hero() {
             <span className="bg-gradient-to-r from-orange-500 via-orange-600 to-navy-700 bg-clip-text text-transparent">
               {hero.titleAccent}
             </span>
-          </motion.h1>
+          </m.h1>
 
-          <motion.p
+          <m.p
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.16 }}
             className="mt-6 max-w-xl text-base leading-relaxed text-ink-500 sm:text-lg"
           >
             {hero.subtitle}
-          </motion.p>
+          </m.p>
 
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.24 }}
@@ -119,9 +119,9 @@ export default function Hero() {
               <WhatsAppIcon className="h-5 w-5" />
               Chat on WhatsApp
             </a>
-          </motion.div>
+          </m.div>
 
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.34 }}
@@ -135,9 +135,9 @@ export default function Hero() {
               <Ship className="h-4 w-4 text-navy-600" />
               Samples, LCL &amp; FCL supply
             </span>
-          </motion.div>
+          </m.div>
 
-          <motion.dl
+          <m.dl
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.42 }}
@@ -151,10 +151,10 @@ export default function Hero() {
                 </dd>
               </div>
             ))}
-          </motion.dl>
+          </m.dl>
         </div>
 
-        <motion.div
+        <m.div
           ref={orbitRef}
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -185,7 +185,7 @@ export default function Hero() {
             // on the inner one. The bob runs on desktop only — see
             // .float-on-desktop in globals.css for why phones skip it.
             return (
-              <motion.div
+              <m.div
                 key={i}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -201,10 +201,10 @@ export default function Hero() {
                     {item.label}
                   </Link>
                 </div>
-              </motion.div>
+              </m.div>
             );
           })}
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );

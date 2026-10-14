@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ChevronRight } from "lucide-react";
 
 /**
@@ -23,7 +23,7 @@ export default function PageHeader({ eyebrow, title, subtitle, crumb }) {
           <span className="font-medium text-ink-700">{crumb ?? title}</span>
         </nav>
 
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -34,7 +34,7 @@ export default function PageHeader({ eyebrow, title, subtitle, crumb }) {
             {title}
           </h1>
           {subtitle && <p className="mt-3 text-sm leading-relaxed text-ink-500 sm:mt-5 sm:text-lg">{subtitle}</p>}
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );

@@ -70,11 +70,19 @@ export default function Product() {
             <>
               <Reveal className="mt-6 grid gap-10 lg:grid-cols-2 lg:gap-14">
                 <div className="overflow-hidden rounded-3xl">
-                  <ProductVisual product={product} rounded="rounded-3xl" className="aspect-[4/3] w-full" priority />
+                  <ProductVisual product={product} rounded="rounded-3xl" className="aspect-[4/3] w-full" sizes="(min-width: 1024px) 540px, 100vw" priority />
                 </div>
 
                 <div>
-                  {category && <span className="section-eyebrow">{category.title}</span>}
+                  {category && (
+                    <Link
+                      to={`/products?category=${category.slug}`}
+                      className="section-eyebrow transition-colors hover:border-orange-300 hover:bg-orange-100"
+                      title={`All ${category.title.toLowerCase()}`}
+                    >
+                      {category.title}
+                    </Link>
+                  )}
                   <h1 className="mt-4 font-display text-3xl font-bold text-ink-900 sm:text-4xl">{product.name}</h1>
                   <p className="mt-4 text-base leading-relaxed text-ink-500">{product.description}</p>
 
@@ -150,7 +158,7 @@ export default function Product() {
                         className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-glass transition-[transform,box-shadow,border-color] ease-out duration-500 hover:-translate-y-1 hover:border-navy-200 hover:shadow-lift"
                       >
                         <span className="block h-32 w-full overflow-hidden">
-                          <ProductVisual product={r} rounded="rounded-none" />
+                          <ProductVisual product={r} rounded="rounded-none" sizes="(min-width: 640px) 33vw, 100vw" />
                         </span>
                         <span className="flex items-center justify-between gap-2 p-4">
                           <span className="text-sm font-semibold text-ink-900">{r.name}</span>

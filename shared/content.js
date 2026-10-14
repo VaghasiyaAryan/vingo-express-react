@@ -1,10 +1,9 @@
 /* ============================================================================
  * VinGo International — EDIT ALL WEBSITE TEXT HERE
  * ----------------------------------------------------------------------------
- * Anything marked [PLACEHOLDER] is sample content written to make the site look
- * complete. Replace it with your real business details before going live.
- *
- * Confirmed real details: company name, phone number, website domain.
+ * Confirmed by the owner: company name, phone number, website domain, email,
+ * the homepage stats and the export markets list. Anything still marked
+ * [PLACEHOLDER] below is sample wording to review.
  * ==========================================================================*/
 
 // Canonical production URL — every canonical link, Open Graph tag, JSON-LD
@@ -38,16 +37,21 @@ export const company = {
   whatsappNumber: "919313251136", // digits only, country code first
   website: SITE_URL.replace(/^https?:\/\//, ""),
   websiteUrl: SITE_URL,
-  email: "hello@vingointernational.com", // [PLACEHOLDER] set your real inbox
+  email: "hello@vingointernational.com",
   address: "Surat, Gujarat, India",
 };
 
 export const social = {
-  instagram: "https://www.instagram.com/vingo.international?igsi=MW03ZWoxdnAxbWp1Nw==",
-  facebook: "https://www.facebook.com/share/19EMAY3owh/",
+  instagram: "https://www.instagram.com/vingo.international/",
+  facebook: "https://www.facebook.com/people/Vingo-International/61593469176427/",
+  // Not a company page yet — it opens the LinkedIn feed. Kept as the owner
+  // chose, but left out of the structured data's `sameAs` (see server/src/seo/meta.js).
   linkedin: "https://www.linkedin.com/feed/",
   twitter: "https://x.com/VingoGlobal",
 };
+
+/** Social profiles that are genuinely this company's — used as schema.org `sameAs`. */
+export const officialProfiles = [social.instagram, social.facebook, social.twitter];
 
 export const whatsappDefaultMessage =
   "Hello VinGo International, I would like to enquire about your dehydrated food products.";
@@ -83,7 +87,6 @@ export const hero = {
   titleAccent: "dehydrated to perfection",
   subtitle:
     "VinGo International supplies dehydrated fruits and vegetables, fruit and vegetable powders, and ready-to-cook instant food mixes to food manufacturers, distributors and retailers across the globe.",
-  // [PLACEHOLDER] Replace these with your real numbers.
   stats: [
     { value: "20+", label: "Product Varieties" },
     { value: "15+", label: "Countries Served" },
@@ -234,7 +237,8 @@ export const processSteps = [
   },
 ];
 
-// [PLACEHOLDER] Replace with the markets you actually ship to.
+// The markets the business ships to — also published as `areaServed` in the
+// LocalBusiness structured data, so keep it accurate.
 export const globalMarkets = [
   "United States",
   "United Kingdom",
@@ -250,28 +254,10 @@ export const globalMarkets = [
   "Japan",
 ];
 
-// [PLACEHOLDER] Sample testimonials. Do not publish these as real — replace them
-// with genuine, permission-granted client quotes or delete the section entirely.
-export const testimonials = [
-  {
-    quote:
-      "Consistent mesh size batch after batch, and the documentation always arrives complete. That reliability is what keeps our production line moving.",
-    name: "Procurement Head",
-    role: "Food Ingredients Importer",
-  },
-  {
-    quote:
-      "They developed a custom vegetable blend to our specification and turned samples around quickly. Communication over WhatsApp made the whole process simple.",
-    name: "Product Manager",
-    role: "Ready-Meal Manufacturer",
-  },
-  {
-    quote:
-      "Colour and aroma retention in their fruit powders is genuinely strong, and pricing stayed stable across the season.",
-    name: "Category Buyer",
-    role: "Beverage & Bakery Distributor",
-  },
-];
+// Client testimonials, shown on the About page. Empty on purpose: the
+// section stays hidden until there are genuine, permission-granted quotes.
+// To add one: { quote: "…", name: "Jane Doe", role: "Procurement Head, Company" }
+export const testimonials = [];
 
 export const faqs = [
   {

@@ -114,7 +114,7 @@ export default function ProductsList() {
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <span className="h-10 w-10 shrink-0 overflow-hidden rounded-lg">
-                          <ProductVisual product={product} rounded="rounded-lg" />
+                          <ProductVisual product={product} rounded="rounded-lg" sizes="64px" />
                         </span>
                         <div>
                           <p className="font-semibold text-ink-900">{product.name}</p>

@@ -51,6 +51,9 @@ function jsonLdScript(blocks) {
 export function renderHead(data) {
   const og = data.openGraph || {};
   const tw = data.twitter;
+  // An image is { url, width?, height?, alt? }; a bare string is accepted too.
+  const ogImage = typeof og.image === "string" ? { url: og.image } : og.image || {};
+  const twImage = typeof tw?.image === "string" ? { url: tw.image } : tw?.image || {};
 
   const tags = [
     `<title>${escapeHtml(data.title)}</title>`,
@@ -60,14 +63,21 @@ export function renderHead(data) {
     meta("name", "theme-color", data.themeColor),
     data.canonical ? `<link rel="canonical" href="${escapeHtml(data.canonical)}">` : "",
     meta("property", "og:type", og.type),
+    meta("property", "og:locale", "en_IN"),
     meta("property", "og:url", og.url),
     meta("property", "og:site_name", og.siteName),
     meta("property", "og:title", og.title),
     meta("property", "og:description", og.description),
-    meta("property", "og:image", og.image),
+    meta("property", "og:image", ogImage.url),
+    meta("property", "og:image:width", ogImage.width && String(ogImage.width)),
+    meta("property", "og:image:height", ogImage.height && String(ogImage.height)),
+    meta("property", "og:image:alt", ogImage.alt),
     tw ? meta("name", "twitter:card", tw.card) : "",
+    tw ? meta("name", "twitter:site", tw.site) : "",
     tw ? meta("name", "twitter:title", tw.title) : "",
     tw ? meta("name", "twitter:description", tw.description) : "",
+    tw ? meta("name", "twitter:image", twImage.url) : "",
+    tw ? meta("name", "twitter:image:alt", twImage.alt) : "",
     jsonLdScript(data.jsonLd),
   ];
 

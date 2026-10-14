@@ -12,7 +12,7 @@ export default function Terms() {
       <main className="pt-28 pb-20 sm:pt-32 lg:pt-36">
         <div className="container-x max-w-3xl">
           <h1 className="font-display text-3xl font-bold text-ink-900 sm:text-4xl">Terms &amp; Conditions</h1>
-          <p className="mt-3 text-sm text-ink-500">Last updated: {new Date().getFullYear()}</p>
+          <p className="mt-3 text-sm text-ink-500">Last updated: 14 October 2026</p>
 
           <div className="mt-10 space-y-8 text-sm leading-relaxed text-ink-700">
             <section>

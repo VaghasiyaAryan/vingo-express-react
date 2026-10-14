@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { Mail, Phone, Search, Download, Check, Trash2, Loader2 } from "lucide-react";
 import { WhatsAppIcon } from "@/components/WhatsAppButton.jsx";
 import { company } from "@shared/content.js";
@@ -171,7 +171,7 @@ function ExportCsvButton({ rows }) {
   }
 
   return (
-    <motion.button
+    <m.button
       type="button"
       onClick={handleClick}
       disabled={rows.length === 0}
@@ -181,7 +181,7 @@ function ExportCsvButton({ rows }) {
       <span className="relative flex h-4 w-4 items-center justify-center">
         <AnimatePresence mode="wait" initial={false}>
           {justExported ? (
-            <motion.span
+            <m.span
               key="check"
               initial={{ scale: 0.4, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -190,9 +190,9 @@ function ExportCsvButton({ rows }) {
               className="absolute inset-0 flex items-center justify-center text-emerald-600"
             >
               <Check className="h-4 w-4" />
-            </motion.span>
+            </m.span>
           ) : (
-            <motion.span
+            <m.span
               key="download"
               initial={{ scale: 0.4, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -201,12 +201,12 @@ function ExportCsvButton({ rows }) {
               className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover:translate-y-0.5"
             >
               <Download className="h-4 w-4" />
-            </motion.span>
+            </m.span>
           )}
         </AnimatePresence>
       </span>
       {justExported ? "Exported" : "Export CSV"}
-    </motion.button>
+    </m.button>
   );
 }
 

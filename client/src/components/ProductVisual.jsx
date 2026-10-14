@@ -80,19 +80,35 @@ function shapes(form, next, colors) {
   return out;
 }
 
-export default function ProductVisual({ product, className = "", rounded = "rounded-2xl", priority = false }) {
+/** Bundled photos (public/products/<slug>.webp) also exist at 600px wide as <slug>-600.webp. */
+const BUNDLED_PHOTO = /^\/products\/[a-z0-9-]+\.webp$/;
+
+/**
+ * `sizes` tells the browser how wide the image will be shown, so a phone picks
+ * the 600px file for a card and a desktop the 1200px one for the product page.
+ */
+export default function ProductVisual({
+  product,
+  className = "",
+  rounded = "rounded-2xl",
+  priority = false,
+  sizes = "(min-width: 1024px) 360px, (min-width: 640px) 50vw, 112px",
+}) {
   const { slug, name, image, form = "flakes", colors } = product;
 
   if (image) {
+    const srcSet = BUNDLED_PHOTO.test(image) ? `${image.replace(/\.webp$/, "-600.webp")} 600w, ${image} 1200w` : undefined;
     return (
-      <div className={`relative h-full w-full overflow-hidden bg-slate-50 ${rounded} ${className}`}>
+      <div className={`relative h-full w-full overflow-hidden bg-slate-100 ${rounded} ${className}`}>
         <img
           src={image}
+          srcSet={srcSet}
+          sizes={srcSet ? sizes : undefined}
           alt={name}
           decoding="async"
           fetchPriority={priority ? "high" : undefined}
           loading={priority ? "eager" : "lazy"}
-          className="absolute inset-0 h-full w-full object-contain"
+          className="absolute inset-0 h-full w-full object-cover"
         />
       </div>
     );

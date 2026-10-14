@@ -3,8 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- favicon.ico (16/32/48) for every browser and Google results; the SVG for
+         browsers that prefer it; a padded PNG for iOS home screens (iOS ignores SVG). -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/svg+xml" href="/logo-mark.svg" />
-    <link rel="apple-touch-icon" href="/logo-mark.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,15 +17,8 @@
       href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap"
     />
 
-    <!--
-      The Express server replaces the marker below with the route's real title,
-      description, canonical link, Open Graph tags and JSON-LD before sending
-      the page, and removes the data-fallback title. See server/src/seo/.
-      Running the Vite dev server directly skips that step, so in development
-      every page shows the fallback title.
-    -->
     <!--seo-head-->
-    <title data-fallback>VinGo International Pvt Ltd — Dehydrated Fruits, Vegetables &amp; Powders Exporter</title>
+    <title data-fallback>Dehydrated Fruits &amp; Vegetables Exporter | VinGo International</title>
   </head>
   <body>
     <div id="root"></div>

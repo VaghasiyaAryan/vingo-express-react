@@ -1,16 +1,30 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Search } from "lucide-react";
-import "flag-icons/css/flag-icons.min.css";
 import { countries, countryByCode } from "@shared/countries.js";
 
 /**
- * Real flag SVGs (via the flag-icons package), not Unicode emoji — regional
+ * Real flag SVGs (from the flag-icons package), not Unicode emoji — regional
  * indicator flag emoji often render as two boxed letters ("IN" instead of a
  * flag) on Windows, since not every Windows/Chrome/font combination ligates
  * the pair into a pictograph. This looks right everywhere, no font gambling.
+ *
+ * Each flag is its own file, fetched only when it is on screen. The package's
+ * stylesheet inlined all ~270 flags into the site's main CSS — about 450 KB
+ * that every visitor downloaded on every page for a form most never open.
  */
+const FLAG_URLS = Object.fromEntries(
+  Object.entries(
+    import.meta.glob("../../node_modules/flag-icons/flags/4x3/*.svg", { query: "?url", import: "default", eager: true })
+  ).map(([file, url]) => [file.slice(file.lastIndexOf("/") + 1, -4), url])
+);
+
 function Flag({ code, className = "" }) {
-  return <span className={`fi fi-${code.toLowerCase()} shrink-0 rounded-[2px] ${className}`} />;
+  const src = FLAG_URLS[code.toLowerCase()];
+  if (!src) return <span className={`inline-block shrink-0 rounded-[2px] bg-slate-200 ${className}`} />;
+  // Decorative: the country name or dial code is always shown next to it.
+  return (
+    <img src={src} alt="" width={20} height={15} loading="lazy" decoding="async" className={`shrink-0 rounded-[2px] object-cover ${className}`} />
+  );
 }
 
 /**

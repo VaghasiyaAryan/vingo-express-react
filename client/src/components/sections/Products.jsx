@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowRight, Package, LayoutGrid, Mail } from "lucide-react";
 import Reveal from "@/components/Reveal.jsx";
@@ -122,7 +122,7 @@ export default function Products({ products = [], loading = false, error = null,
               which used to override the card's hover lift. Only the first few
               cards animate in — animating all 25 at once froze slow phones. */}
           {visible.map((product, i) => (
-            <motion.div
+            <m.div
               key={product.slug}
               initial={i < ANIMATED_CARDS ? { opacity: 0, y: 18 } : false}
               animate={{ opacity: 1, y: 0 }}
@@ -197,7 +197,7 @@ export default function Products({ products = [], loading = false, error = null,
                   </div>
                 </div>
               </article>
-            </motion.div>
+            </m.div>
           ))}
         </div>
 

@@ -15,6 +15,7 @@ import { settingsRouter } from "./routes/settings.js";
 import { adminRouter } from "./routes/admin/index.js";
 import { wellKnownRouter } from "./seo/wellKnown.js";
 import { serveApp } from "./seo/render.js";
+import { canonicalRedirects } from "./seo/redirects.js";
 
 export function createApp() {
   const app = express();
@@ -23,6 +24,9 @@ export function createApp() {
   // cookie flag are only correct once X-Forwarded-* is trusted.
   app.set("trust proxy", 1);
   app.disable("x-powered-by");
+
+  // One URL per page: bare domain → www, no trailing slash, lowercase.
+  app.use(canonicalRedirects);
 
   app.use(compression());
   app.use(express.json({ limit: "1mb" }));

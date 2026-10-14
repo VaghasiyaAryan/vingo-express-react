@@ -1,5 +1,13 @@
 import { prisma } from "../prisma.js";
-import { businessCard, businessCardName, company, faqs, productCategories } from "../../../shared/content.js";
+import {
+  businessCard,
+  businessCardName,
+  company,
+  faqs,
+  globalMarkets,
+  officialProfiles,
+  productCategories,
+} from "../../../shared/content.js";
 
 /**
  * Per-route document metadata, resolved on the server.
@@ -12,8 +20,9 @@ import { businessCard, businessCardName, company, faqs, productCategories } from
 
 const BASE = company.websiteUrl;
 
+// Kept under ~155 characters so Google shows it in full instead of cutting it off.
 const SITE_DESCRIPTION =
-  "VinGo International Pvt Ltd is a food ingredient exporter based in India, supplying premium dehydrated fruits, vegetables, fruit and vegetable powders, and instant food mixes to bulk buyers worldwide. Request a quotation today.";
+  "VinGo International exports dehydrated fruits, vegetables, fruit and vegetable powders and instant food mixes from India to bulk buyers worldwide.";
 
 const KEYWORDS = [
   "food ingredient exporter India",
@@ -34,18 +43,76 @@ function titled(pageTitle) {
   return `${pageTitle} | ${company.shortName}`;
 }
 
-const organizationLd = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: company.name,
-  url: BASE,
-  logo: `${BASE}/logo.svg`,
-  telephone: company.phoneDisplay,
-  email: company.email,
-  description:
-    "Exporter of dehydrated fruits, dehydrated vegetables, fruit and vegetable powders, and dehydrated instant food mixes.",
-  address: { "@type": "PostalAddress", addressCountry: "IN" },
+/**
+ * Social share image (1200×630 PNG — Facebook, WhatsApp, LinkedIn and X do not
+ * render SVG previews). Generated from the logo; see public/og-image.png.
+ */
+const SHARE_IMAGE = {
+  url: `${BASE}/og-image.png`,
+  width: 1200,
+  height: 630,
+  alt: `${company.shortName} — exporter of dehydrated fruits, vegetables, powders and instant food mixes from India`,
 };
+
+/** "Surat, Gujarat, India" → locality + region. Only what the business has published — no street address is invented. */
+const [addressLocality, addressRegion] = company.address.split(",").map((s) => s.trim());
+
+const BUSINESS_ID = `${BASE}/#business`;
+
+/**
+ * LocalBusiness, not just Organization: it is what Google uses for the
+ * business's knowledge panel and local results. Fields are limited to facts
+ * the site already states — no opening hours, geo-coordinates or ratings are
+ * made up.
+ */
+const localBusinessLd = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "@id": BUSINESS_ID,
+  name: company.name,
+  alternateName: company.shortName,
+  url: BASE,
+  logo: `${BASE}/icon-512.png`,
+  image: SHARE_IMAGE.url,
+  description:
+    "Exporter of dehydrated fruits, dehydrated vegetables, fruit and vegetable powders, and dehydrated instant food mixes from India.",
+  telephone: company.phoneHref,
+  email: company.email,
+  address: { "@type": "PostalAddress", addressLocality, addressRegion, addressCountry: "IN" },
+  areaServed: globalMarkets.map((name) => ({ "@type": "Country", name })),
+  sameAs: officialProfiles,
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "sales",
+    telephone: company.phoneHref,
+    email: company.email,
+  },
+};
+
+const websiteLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${BASE}/#website`,
+  name: company.shortName,
+  url: BASE,
+  inLanguage: "en",
+  publisher: { "@id": BUSINESS_ID },
+};
+
+/** [["About Us", "/about"]] → BreadcrumbList starting at Home. */
+function breadcrumbLd(trail) {
+  const items = [["Home", ""], ...trail];
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map(([name, path], i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name,
+      item: `${BASE}${path}`,
+    })),
+  };
+}
 
 const faqLd = {
   "@context": "https://schema.org",
@@ -61,7 +128,8 @@ const faqLd = {
 function defaults() {
   return {
     status: 200,
-    title: `${company.name} — Dehydrated Fruits, Vegetables & Powders Exporter`,
+    // Under ~60 characters so search results show it whole. Mirrors defaultTitle() in the client.
+    title: `Dehydrated Fruits & Vegetables Exporter | ${company.shortName}`,
     description: SITE_DESCRIPTION,
     keywords: KEYWORDS,
     canonical: BASE,
@@ -74,10 +142,43 @@ function defaults() {
       title: `${company.name} — Dehydrated Foods, Delivered Worldwide`,
       description:
         "Premium dehydrated fruits, vegetables, powders and instant food mixes for food manufacturers, distributors and retailers worldwide.",
-      image: `${BASE}/logo.svg`,
+      image: SHARE_IMAGE,
     },
+    // Filled in from openGraph by withSocial() when not set explicitly.
     twitter: null,
     jsonLd: [],
+  };
+}
+
+/**
+ * Large-image X/Twitter card mirroring the Open Graph title, description and
+ * image, so every shared link shows the same rich preview everywhere.
+ */
+function withSocial(meta) {
+  const og = meta.openGraph;
+  return {
+    ...meta,
+    twitter: meta.twitter ?? {
+      card: "summary_large_image",
+      site: "@VingoGlobal",
+      title: og.title,
+      description: og.description,
+      image: og.image,
+    },
+  };
+}
+
+/** A standard page: its own title, description, canonical, share preview, breadcrumbs. */
+function pageMeta(path, { title, description, crumb, jsonLd = [] }) {
+  const url = `${BASE}${path}`;
+  const fullTitle = titled(title);
+  return {
+    ...defaults(),
+    title: fullTitle,
+    description,
+    canonical: url,
+    openGraph: { ...defaults().openGraph, url, title: fullTitle, description },
+    jsonLd: [...jsonLd, breadcrumbLd([[crumb ?? title, path]])],
   };
 }
 
@@ -85,7 +186,7 @@ function defaults() {
 const SITE_PAGES = {
   "/about": {
     title: "About Us",
-    description: `${company.shortName} sources, dehydrates and exports fruits, vegetables, powders and instant food mixes from India — how we work, our quality process and the markets we ship to.`,
+    description: `How ${company.shortName} sources, dehydrates and exports fruits, vegetables, powders and instant food mixes from India, and the markets we ship to.`,
   },
   "/products": {
     title: "Products",
@@ -100,6 +201,7 @@ const SITE_PAGES = {
   "/contact": {
     title: "Contact Us",
     description: `Request a quotation or samples from ${company.shortName} — by enquiry form, phone, email or WhatsApp. We usually reply within one working day.`,
+    jsonLd: [localBusinessLd],
   },
 };
 
@@ -118,6 +220,14 @@ const LEGAL_PAGES = {
   },
 };
 
+/** The product's one-liner plus a call to action, kept under ~160 characters. */
+function productDescription(short) {
+  const full = `${short} Bulk supply from India by ${company.shortName} — request specifications and a quote.`;
+  if (full.length <= 160) return full;
+  const brief = `${short} Bulk supply from India.`;
+  return brief.length <= 160 ? brief : short.slice(0, 157).trimEnd() + "…";
+}
+
 async function productMeta(slug) {
   const product = await prisma.product.findFirst({ where: { slug, active: true } });
   if (!product) return notFoundMeta();
@@ -125,11 +235,15 @@ async function productMeta(slug) {
   const category = productCategories.find((c) => c.slug === product.category);
   const url = `${BASE}/products/${product.slug}`;
   const title = titled(`${product.name} Supplier & Exporter from India`);
+  // A real product photo when one is set (uploads are stored as /api/images/:id,
+  // so make it absolute); otherwise the site share image.
+  const photo = product.image ? new URL(product.image, BASE).href : null;
+  const description = productDescription(product.short);
 
   return {
     ...defaults(),
     title,
-    description: product.short,
+    description,
     canonical: url,
     openGraph: {
       // Open Graph has no "product" type that unfurlers act on. The Product
@@ -139,10 +253,9 @@ async function productMeta(slug) {
       url,
       siteName: company.shortName,
       title,
-      description: product.short,
-      image: product.image || `${BASE}/logo.svg`,
+      description,
+      image: photo ? { url: photo, alt: product.name } : SHARE_IMAGE,
     },
-    twitter: { card: "summary", title, description: product.short },
     jsonLd: [
       {
         "@context": "https://schema.org",
@@ -151,17 +264,15 @@ async function productMeta(slug) {
         description: product.description,
         category: category?.title,
         url,
+        // Only a genuine photo of the product — never the generic share image.
+        ...(photo ? { image: photo } : {}),
         brand: { "@type": "Brand", name: company.shortName },
+        manufacturer: { "@id": BUSINESS_ID },
       },
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "Home", item: BASE },
-          { "@type": "ListItem", position: 2, name: "Products", item: `${BASE}/products` },
-          { "@type": "ListItem", position: 3, name: product.name, item: url },
-        ],
-      },
+      breadcrumbLd([
+        ["Products", "/products"],
+        [product.name, `/products/${product.slug}`],
+      ]),
     ],
   };
 }
@@ -185,7 +296,7 @@ function cardMeta() {
       siteName: company.shortName,
       title: `${businessCardName} — ${businessCard.role}`,
       description: `${businessCard.organization} · ${company.tagline}`,
-      image: `${BASE}/logo.svg`,
+      image: SHARE_IMAGE,
     },
     jsonLd: [
       {
@@ -218,10 +329,14 @@ const PRODUCT_PATH = /^\/products\/([a-z0-9-]+)$/i;
 
 /** Resolves metadata for a request path. Never throws — falls back to site defaults. */
 export async function resolveMeta(pathname) {
+  return withSocial(await resolveBase(pathname));
+}
+
+async function resolveBase(pathname) {
   const path = pathname.replace(/\/+$/, "") || "/";
 
   try {
-    if (path === "/") return { ...defaults(), jsonLd: [organizationLd] };
+    if (path === "/") return { ...defaults(), jsonLd: [localBusinessLd, websiteLd] };
     if (path === "/card") return cardMeta();
 
     if (path === "/admin" || path.startsWith("/admin/")) {
@@ -229,18 +344,7 @@ export async function resolveMeta(pathname) {
     }
 
     const page = SITE_PAGES[path] ?? LEGAL_PAGES[path];
-    if (page) {
-      const url = `${BASE}${path}`;
-      const title = titled(page.title);
-      return {
-        ...defaults(),
-        title,
-        description: page.description,
-        canonical: url,
-        openGraph: { ...defaults().openGraph, url, title, description: page.description },
-        jsonLd: page.jsonLd ?? [],
-      };
-    }
+    if (page) return pageMeta(path, page);
 
     const productMatch = path.match(PRODUCT_PATH);
     if (productMatch) return await productMeta(productMatch[1]);
