@@ -235,8 +235,8 @@ async function productMeta(slug) {
   const category = productCategories.find((c) => c.slug === product.category);
   const url = `${BASE}/products/${product.slug}`;
   const title = titled(`${product.name} Supplier & Exporter from India`);
-  // A real product photo when one is set (uploads are stored as /api/images/:id,
-  // so make it absolute); otherwise the site share image.
+  // The product's photo, absolute (uploads are stored as /api/images/:id), for
+  // the Product structured data. Null when the product has no photo.
   const photo = product.image ? new URL(product.image, BASE).href : null;
   const description = productDescription(product.short);
 
@@ -254,7 +254,9 @@ async function productMeta(slug) {
       siteName: company.shortName,
       title,
       description,
-      image: photo ? { url: photo, alt: product.name } : SHARE_IMAGE,
+      // Always the PNG share image: product photos are WebP, which LinkedIn and
+      // some WhatsApp versions do not show as link previews.
+      image: SHARE_IMAGE,
     },
     jsonLd: [
       {

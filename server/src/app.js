@@ -51,6 +51,19 @@ export function createApp() {
   // -------------------------------------------------------- crawler files
   app.use(wellKnownRouter);
 
+  // ------------------------------------------------------- retired files
+  // The host's deploys add and update files but never delete them, so files
+  // removed from the repository keep being served. The original JPG product
+  // photos (now in media/, served as WebP) and the old folder README are
+  // answered as the 404 page instead.
+  app.use((req, res, next) => {
+    if (/^\/products\/[^/]+\.(jpe?g|txt)$/i.test(req.path)) {
+      serveApp(req, res, next);
+      return;
+    }
+    next();
+  });
+
   // ------------------------------------------------------- static assets
   // The built React bundle. `index: false` so the SPA shell always goes
   // through serveApp below, which is what injects the per-route <head>.
