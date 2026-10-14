@@ -9,22 +9,49 @@ const DEFAULT_COLORS = { base: "#f1f5f9", accent: "#cbd5e1", deep: "#94a3b8" };
 const FORM_OPTIONS = ["flakes", "slices", "dices", "granules", "powder", "blend"];
 const VALID_CATEGORIES = productCategories.map((c) => c.slug);
 
+/** "#a1b2c3" / "#abc" only — anything else falls back to the default colour. */
+function hexColor(value, fallback) {
+  const v = clean(value, 9);
+  return /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v) ? v : fallback;
+}
+
+/**
+ * The product photo address: a path on this site (/products/x.webp,
+ * /api/images/:id) or an absolute http(s) URL. Anything else — javascript:,
+ * data:, protocol-relative //host — is rejected.
+ */
+function imageField(value) {
+  const v = clean(value, 2000);
+  if (!v) return { image: null };
+  if (/^\/(?!\/)[^\s]*$/.test(v)) return { image: v };
+  try {
+    const url = new URL(v);
+    if (url.protocol === "https:" || url.protocol === "http:") return { image: url.href };
+  } catch {
+    // not a URL — fall through
+  }
+  return { image: null, imageError: "The photo must be an uploaded image or a link starting with https://." };
+}
+
 /** Normalises the admin product form's payload into a Prisma-shaped record. */
 function productDataFromBody(body = {}) {
   const name = clean(body.name, 160);
   const slugInput = clean(body.slug, 160);
   const colors = body.colors && typeof body.colors === "object" ? body.colors : {};
+  const { image, imageError } = imageField(body.image);
 
   return {
     slug: slugify(slugInput || name),
     category: clean(body.category, 80),
     name,
-    image: clean(body.image, 2000) || null,
+    image,
+    // Not a column — read by validate() and removed before saving.
+    _imageError: imageError,
     form: FORM_OPTIONS.includes(body.form) ? body.form : "flakes",
     colors: {
-      base: clean(colors.base, 32) || DEFAULT_COLORS.base,
-      accent: clean(colors.accent, 32) || DEFAULT_COLORS.accent,
-      deep: clean(colors.deep, 32) || DEFAULT_COLORS.deep,
+      base: hexColor(colors.base, DEFAULT_COLORS.base),
+      accent: hexColor(colors.accent, DEFAULT_COLORS.accent),
+      deep: hexColor(colors.deep, DEFAULT_COLORS.deep),
     },
     short: clean(body.short, 400),
     description: clean(body.description, 4000),
@@ -35,7 +62,13 @@ function productDataFromBody(body = {}) {
   };
 }
 
+/** The record as saved — without the validation-only helper fields. */
+function withoutHelpers({ _imageError, ...record }) {
+  return record;
+}
+
 function validate(data) {
+  if (data._imageError) return data._imageError;
   if (!data.name) return "A product name is required.";
   if (!data.slug) return "A URL slug is required — enter one, or give the product a name it can be derived from.";
   if (!data.category) return "A category is required.";
@@ -83,7 +116,7 @@ adminProductsRouter.post(
 
     // New products go to the end of the list; the admin can reorder later.
     const count = await prisma.product.count();
-    const product = await prisma.product.create({ data: { ...data, sortOrder: count } });
+    const product = await prisma.product.create({ data: { ...withoutHelpers(data), sortOrder: count } });
     res.status(201).json({ product });
   })
 );
@@ -112,7 +145,7 @@ adminProductsRouter.put(
       return;
     }
 
-    const product = await prisma.product.update({ where: { id: current.id }, data });
+    const product = await prisma.product.update({ where: { id: current.id }, data: withoutHelpers(data) });
     res.json({ product });
   })
 );

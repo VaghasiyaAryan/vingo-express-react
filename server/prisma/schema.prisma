@@ -92,6 +92,23 @@ model AdminUser {
   updatedAt         DateTime  @updatedAt
 }
 
+// Who did what in the admin panel: every change, plus sign-ins (including
+// failed ones) and sign-outs. Never stores passwords or request bodies — only
+// a short human-readable detail such as the product name.
+model AdminAuditLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  adminId   String? // null for the shared password or a failed sign-in
+  actor     String // name/email of who acted (or the email tried, on a failed sign-in)
+  action    String // e.g. "Edited product"
+  detail    String? // e.g. "Dehydrated Mango"
+  target    String? // the record id acted on, when there is one
+  status    Int // HTTP status of the result: 2xx succeeded, 4xx refused
+  ip        String
+
+  @@index([createdAt])
+}
+
 // Small pieces of website text editable from the admin panel, one row per
 // key (e.g. "heroFloatingLabels"). A missing row means "use the default from
 // shared/content.js".

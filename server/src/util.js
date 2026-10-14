@@ -49,9 +49,17 @@ export function asyncRoute(handler) {
   return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
 }
 
-/** First entry of X-Forwarded-For, or the socket address. */
+/**
+ * The visitor's real IP, for rate limits and logs.
+ *
+ * Never the first X-Forwarded-For entry: the visitor's own browser can set
+ * that header to anything, which would let an attacker pick a fresh "IP" for
+ * every login guess. Every request to this site arrives through Cloudflare,
+ * which sets CF-Connecting-IP itself (overwriting any value the visitor sent);
+ * otherwise Express's req.ip, which only trusts the configured proxy hop.
+ */
 export function clientIp(req) {
-  const forwarded = req.headers["x-forwarded-for"];
-  if (typeof forwarded === "string" && forwarded) return forwarded.split(",")[0].trim();
+  const cf = req.headers["cf-connecting-ip"];
+  if (typeof cf === "string" && cf.trim()) return cf.trim();
   return req.ip || "unknown";
 }

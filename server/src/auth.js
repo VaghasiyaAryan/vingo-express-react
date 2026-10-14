@@ -1,5 +1,6 @@
 import { createHmac, randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
+import { isProduction } from "./config.js";
 import { prisma } from "./prisma.js";
 
 /**
@@ -234,7 +235,10 @@ const BASE_COOKIE_OPTIONS = {
  * deployment still gets the flag and an internal HTTP one still works.
  */
 export function cookieOptionsFor(req) {
-  return { ...BASE_COOKIE_OPTIONS, secure: req.secure };
+  // In production the site is HTTPS-only (Cloudflare redirects http, and HSTS
+  // pins it), so the cookie is always Secure there — not left to how each
+  // proxy hop reports the protocol.
+  return { ...BASE_COOKIE_OPTIONS, secure: isProduction || req.secure };
 }
 
 /** The admin signed in on this request, or null. */

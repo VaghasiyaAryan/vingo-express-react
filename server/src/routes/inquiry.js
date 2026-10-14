@@ -37,10 +37,13 @@ async function sendNotification(inquiry) {
     )
     .join("");
 
+  // Control characters (line breaks etc.) stripped from the visitor-supplied
+  // parts of the subject line.
+  const oneLine = (s) => String(s ?? "").replace(/[\u0000-\u001f\u007f]+/g, " ").trim();
   await sendMail({
     to,
     replyTo: inquiry.email,
-    subject: `New enquiry from ${inquiry.name}${inquiry.country ? ` (${inquiry.country})` : ""}`,
+    subject: `New enquiry from ${oneLine(inquiry.name)}${inquiry.country ? ` (${oneLine(inquiry.country)})` : ""}`,
     html: `<h2 style="font-family:sans-serif;color:#2e2c75;">New website enquiry — ${company.shortName}</h2><table style="font-family:sans-serif;font-size:14px;border-collapse:collapse;">${rows}</table>`,
   });
 }
@@ -105,6 +108,7 @@ inquiryRouter.post(
       console.error("Inquiry saved but notification email failed:", err);
     }
 
-    res.json({ ok: true, id: inquiry.id });
+    // No record id in the response: the public has no use for it.
+    res.json({ ok: true });
   })
 );

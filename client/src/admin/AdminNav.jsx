@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Inbox, Package, BookOpen, House, Activity, KeyRound, Users } from "lucide-react";
+import { LayoutDashboard, Inbox, Package, BookOpen, House, Activity, KeyRound, Users, ScrollText } from "lucide-react";
 import { useSession } from "./RequireAuth.jsx";
 
 const navItems = [
@@ -10,6 +10,7 @@ const navItems = [
   { to: "/admin/homepage", label: "Homepage", icon: House },
   { to: "/admin/system", label: "System", icon: Activity },
   { to: "/admin/admins", label: "Admins", icon: Users, ownerOnly: true },
+  { to: "/admin/activity", label: "Activity", icon: ScrollText, ownerOnly: true },
   { to: "/admin/security", label: "Security", icon: KeyRound },
 ];
 

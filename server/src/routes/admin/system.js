@@ -3,6 +3,7 @@ import { prisma } from "../../prisma.js";
 import { asyncRoute } from "../../util.js";
 import { emailConfigured } from "../../config.js";
 import { IMAGE_TYPES, MAX_IMAGE_BYTES } from "../images.js";
+import { detectImageType } from "../../security.js";
 import { company, productCategories } from "../../../../shared/content.js";
 
 export const adminSystemRouter = Router();
@@ -107,14 +108,17 @@ adminSystemRouter.post(
   "/images",
   express.raw({ type: IMAGE_TYPES, limit: MAX_IMAGE_BYTES }),
   asyncRoute(async (req, res) => {
-    const contentType = req.get("content-type");
-    if (!IMAGE_TYPES.includes(contentType) || !Buffer.isBuffer(req.body) || req.body.length === 0) {
+    const claimed = req.get("content-type");
+    // The claimed type must be allowed AND the file's own bytes must actually
+    // be that format — a renamed HTML/SVG/executable is refused either way.
+    const actual = Buffer.isBuffer(req.body) ? detectImageType(req.body) : null;
+    if (!IMAGE_TYPES.includes(claimed) || !actual || actual !== claimed) {
       res.status(400).json({ error: "Please choose a JPEG, PNG, WebP or AVIF image." });
       return;
     }
 
     const image = await prisma.image.create({
-      data: { contentType, sizeBytes: req.body.length, data: req.body },
+      data: { contentType: actual, sizeBytes: req.body.length, data: req.body },
       select: { id: true },
     });
     res.status(201).json({ url: `/api/images/${image.id}` });

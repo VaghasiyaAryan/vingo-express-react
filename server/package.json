@@ -19,12 +19,16 @@
     "@prisma/adapter-neon": "^5.22.0",
     "@prisma/client": "^5.22.0",
     "@react-pdf/renderer": "^4.6.1",
-    "compression": "^1.8.1",
+    "compression": "^1.8.2",
     "cookie-parser": "^1.4.7",
     "express": "^5.1.0",
     "prisma": "^5.22.0",
     "react": "^19.0.0",
     "resend": "^6.21.0",
     "ws": "^8.18.0"
+  },
+  "overrides": {
+    "proxy-addr": "^2.0.8",
+    "qs": "^6.16.0"
   }
 }

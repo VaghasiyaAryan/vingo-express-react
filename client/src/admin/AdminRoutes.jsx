@@ -12,6 +12,7 @@ import Catalog from "./Catalog.jsx";
 import Homepage from "./Homepage.jsx";
 import Security from "./Security.jsx";
 import Admins from "./Admins.jsx";
+import ActivityLog from "./ActivityLog.jsx";
 import System from "./System.jsx";
 import AdminNotFound from "./AdminNotFound.jsx";
 
@@ -44,6 +45,7 @@ export default function AdminRoutes() {
           <Route path="homepage" element={<Homepage />} />
           <Route path="security" element={<Security />} />
           <Route path="admins" element={<Admins />} />
+          <Route path="activity" element={<ActivityLog />} />
           <Route path="system" element={<System />} />
           <Route path="*" element={<AdminNotFound />} />
         </Route>

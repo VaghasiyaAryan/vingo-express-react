@@ -16,6 +16,7 @@ import { adminRouter } from "./routes/admin/index.js";
 import { wellKnownRouter } from "./seo/wellKnown.js";
 import { serveApp } from "./seo/render.js";
 import { canonicalRedirects } from "./seo/redirects.js";
+import { rateLimit, sameOriginWrites, securityHeaders } from "./security.js";
 
 export function createApp() {
   const app = express();
@@ -25,6 +26,9 @@ export function createApp() {
   app.set("trust proxy", 1);
   app.disable("x-powered-by");
 
+  // CSP, HSTS, anti-framing, nosniff… on every response, redirects included.
+  app.use(securityHeaders);
+
   // One URL per page: bare domain → www, no trailing slash, lowercase.
   app.use(canonicalRedirects);
 
@@ -33,6 +37,24 @@ export function createApp() {
   app.use(cookieParser());
 
   // ------------------------------------------------------------------ API
+  // Abuse protection: a generous ceiling for the whole API, tight limits on
+  // the two public endpoints that cost something per request (the enquiry
+  // form saves to the database and sends an email; the catalogue is a PDF
+  // generated from scratch each time). Logins have their own database-backed
+  // limit in routes/auth.js.
+  app.use("/api", rateLimit({ windowMs: 60 * 1000, max: 300 }));
+  app.post(
+    "/api/inquiry",
+    rateLimit({
+      windowMs: 10 * 60 * 1000,
+      max: 5,
+      message: "You have sent several enquiries in a short time. Please wait a few minutes, or reach us on WhatsApp.",
+    })
+  );
+  app.get("/api/catalog", rateLimit({ windowMs: 10 * 60 * 1000, max: 10 }));
+  // Writes are only accepted from this site's own pages.
+  app.use("/api", sameOriginWrites);
+
   app.use("/api/auth", authRouter);
   app.use("/api/inquiry", inquiryRouter);
   app.use("/api/products", productsRouter);

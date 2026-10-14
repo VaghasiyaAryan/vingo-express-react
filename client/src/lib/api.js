@@ -135,6 +135,7 @@ export const endpoints = {
     setAdminRole: (id, role) => api.patch(`/api/admin/admins/${id}/role`, { role }),
     resetAdminPassword: (id, password) => api.post(`/api/admin/admins/${id}/password`, { password }),
     deleteAdmin: (id) => api.delete(`/api/admin/admins/${id}`),
+    activity: (options) => api.get("/api/admin/activity", options),
 
     passwordInfo: (options) => api.get("/api/admin/password", options),
     changePassword: (currentPassword, newPassword) => api.post("/api/admin/password", { currentPassword, newPassword }),

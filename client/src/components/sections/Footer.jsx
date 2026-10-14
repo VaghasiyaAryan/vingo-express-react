@@ -168,9 +168,7 @@ export default function Footer() {
             <Link to="/cookie-policy" className="transition-colors hover:text-navy-700">
               Cookie Policy
             </Link>
-            <Link to="/admin" className="transition-colors hover:text-navy-700">
-              Admin
-            </Link>
+            {/* No public link to the admin panel: admins go to /admin directly. */}
           </div>
         </div>
       </div>
