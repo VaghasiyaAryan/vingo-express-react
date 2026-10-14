@@ -10,8 +10,8 @@ export default function PageHeader({ eyebrow, title, subtitle, crumb }) {
   return (
     <section className="relative overflow-hidden bg-mesh-light pt-24 pb-8 sm:pt-32 sm:pb-14 lg:pt-36 lg:pb-16">
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-0 h-[360px] w-[360px] -translate-x-1/2 rounded-full bg-navy-200/25 blur-[110px]" />
-        <div className="absolute bottom-0 right-[8%] h-[260px] w-[260px] rounded-full bg-orange-200/25 blur-[100px]" />
+        <div className="absolute left-1/2 top-0 h-[360px] w-[360px] -translate-x-1/2 scale-150 glow-navy" />
+        <div className="absolute bottom-0 right-[8%] h-[260px] w-[260px] scale-150 glow-orange" />
       </div>
 
       <div className="container-x">

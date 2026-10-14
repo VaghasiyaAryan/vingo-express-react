@@ -169,8 +169,8 @@ export default function Enquiry({ products = [] }) {
     <section id="enquiry" className="relative overflow-hidden py-14 sm:py-20 lg:py-28">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white via-navy-50/50 to-white" />
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute right-[6%] top-10 h-[280px] w-[280px] rounded-full bg-orange-200/25 blur-[110px]" />
-        <div className="absolute bottom-0 left-[4%] h-[320px] w-[320px] rounded-full bg-navy-200/25 blur-[110px]" />
+        <div className="absolute right-[6%] top-10 h-[280px] w-[280px] scale-150 glow-orange" />
+        <div className="absolute bottom-0 left-[4%] h-[320px] w-[320px] scale-150 glow-navy" />
       </div>
 
       <div className="container-x grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14">
@@ -187,7 +187,7 @@ export default function Enquiry({ products = [] }) {
               <a
                 href={`tel:${company.phoneHref}`}
                 onClick={() => analytics.phoneClick("enquiry-sidebar")}
-                className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:border-navy-200 hover:shadow-glass"
+                className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition-[border-color,box-shadow] duration-300 hover:border-navy-200 hover:shadow-glass"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
                   <Phone className="h-5 w-5" />
@@ -204,7 +204,7 @@ export default function Enquiry({ products = [] }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => analytics.whatsappClick("enquiry-sidebar")}
-                className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:border-[#25D366]/40 hover:shadow-glass"
+                className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition-[border-color,box-shadow] duration-300 hover:border-[#25D366]/40 hover:shadow-glass"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#25D366]/10 text-[#128C4A]">
                   <WhatsAppIcon className="h-5 w-5" />
@@ -219,7 +219,7 @@ export default function Enquiry({ products = [] }) {
               <a
                 href={`mailto:${company.email}`}
                 onClick={() => analytics.emailClick("enquiry-sidebar")}
-                className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:border-navy-200 hover:shadow-glass"
+                className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-4 transition-[border-color,box-shadow] duration-300 hover:border-navy-200 hover:shadow-glass"
               >
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700">
                   <Mail className="h-5 w-5" />
@@ -242,7 +242,7 @@ export default function Enquiry({ products = [] }) {
           </ul>
         </div>
 
-        <div className="rounded-3xl border border-white/60 bg-white/55 p-6 shadow-glass backdrop-blur-xl backdrop-saturate-150 sm:p-9">
+        <div className="rounded-3xl border border-white/70 bg-white/85 p-6 shadow-glass sm:p-9">
           {status === "success" ? (
             <div className="flex h-full min-h-[420px] flex-col items-center justify-center text-center">
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-navy-100 text-navy-700">
@@ -258,7 +258,7 @@ export default function Enquiry({ products = [] }) {
                   href={whatsappLink()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn border border-white/30 bg-[#25D366]/90 text-white backdrop-blur-md backdrop-saturate-150 hover:brightness-95"
+                  className="btn border border-white/30 bg-[#25D366]/90 text-white hover:brightness-95"
                 >
                   <WhatsAppIcon className="h-5 w-5" />
                   Chat now on WhatsApp

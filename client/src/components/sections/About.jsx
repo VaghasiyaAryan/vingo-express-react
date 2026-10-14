@@ -29,10 +29,10 @@ export default function About({ moreLink = false }) {
           {moreLink && (
             <Link
               to="/about"
-              className="mt-9 inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 transition-all hover:gap-2.5"
+              className="group/more mt-9 inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700"
             >
               More about us
-              <ArrowRight className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/more:translate-x-1" />
             </Link>
           )}
         </Reveal>

@@ -39,7 +39,7 @@ export default function Faq() {
                     </button>
                   </dt>
                   <dd
-                    className={`grid transition-all duration-300 ease-out ${
+                    className={`grid transition-[grid-template-rows,opacity,padding] duration-300 ease-out ${
                       isOpen ? "grid-rows-[1fr] pb-5 opacity-100" : "grid-rows-[0fr] opacity-0"
                     }`}
                   >

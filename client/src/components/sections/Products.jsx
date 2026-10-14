@@ -14,6 +14,9 @@ const filters = [
 /** Products shown in the homepage preview. */
 const PREVIEW_COUNT = 3;
 
+/** Cards that fade in; the rest (below the fold anyway) appear instantly. */
+const ANIMATED_CARDS = 6;
+
 /** Placeholder card, shown while the catalogue is on its way from the API. */
 function ProductCardSkeleton() {
   return (
@@ -86,7 +89,7 @@ export default function Products({ products = [], loading = false, error = null,
                     type="button"
                     onClick={() => chooseFilter(f.slug)}
                     aria-pressed={isActive}
-                    className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold backdrop-blur-md backdrop-saturate-150 transition-all duration-300 sm:px-5 sm:py-2.5 ${
+                    className={`shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-[color,background-color,border-color,box-shadow] duration-300 sm:px-5 sm:py-2.5 ${
                       isActive
                         ? "border-white/40 bg-gradient-to-r from-orange-500/90 to-orange-600/90 text-white shadow-lift"
                         : "border-white/60 bg-white/50 text-ink-700 hover:border-navy-300 hover:bg-white/70 hover:text-navy-700"
@@ -114,14 +117,19 @@ export default function Products({ products = [], loading = false, error = null,
           {loading && products.length === 0 && !error
             ? Array.from({ length: PREVIEW_COUNT }, (_, i) => <ProductCardSkeleton key={i} />)
             : null}
+          {/* The entrance animation lives on a wrapper, the hover lift on the card:
+              framer-motion leaves an inline transform on whatever it animates,
+              which used to override the card's hover lift. Only the first few
+              cards animate in — animating all 25 at once froze slow phones. */}
           {visible.map((product, i) => (
-            <motion.article
+            <motion.div
               key={product.slug}
-              initial={{ opacity: 0, y: 18 }}
+              initial={i < ANIMATED_CARDS ? { opacity: 0, y: 18 } : false}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: Math.min(i * 0.04, 0.32), ease: [0.22, 1, 0.36, 1] }}
-              className="group flex overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-glass transition-all duration-500 hover:-translate-y-1.5 hover:border-navy-200 hover:shadow-lift sm:flex-col sm:rounded-3xl"
+              transition={{ duration: 0.4, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+              className="flex"
             >
+              <article className="group flex w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-glass transition-[transform,box-shadow,border-color] duration-500 ease-out hover:-translate-y-1.5 hover:border-navy-200 hover:shadow-lift sm:flex-col sm:rounded-3xl">
                 <Link
                   to={`/products/${product.slug}`}
                   className="block w-24 shrink-0 overflow-hidden min-[380px]:w-28 sm:h-44 sm:w-full"
@@ -157,12 +165,14 @@ export default function Products({ products = [], loading = false, error = null,
                   <div className="mt-3 flex items-center gap-3 border-t border-slate-100 pt-3 sm:mt-5 sm:pt-4">
                     <Link
                       to={`/products/${product.slug}`}
-                      className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-semibold text-navy-700 transition-all hover:gap-2 sm:gap-1.5 sm:text-sm sm:hover:gap-2.5"
+                      className="group/details inline-flex items-center gap-1 whitespace-nowrap text-xs font-semibold text-navy-700 sm:gap-1.5 sm:text-sm"
                     >
                       {/* "Details" on the narrowest phones, where the full label would push the buttons out. */}
                       <span className="min-[380px]:hidden">Details</span>
                       <span className="hidden min-[380px]:inline">View details</span>
-                      <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      {/* Nudge the arrow with a transform rather than growing the gap,
+                          which re-laid-out the whole row on every hover frame. */}
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover/details:translate-x-1 sm:h-4 sm:w-4" />
                     </Link>
                     <div className="ml-auto flex shrink-0 items-center gap-1.5">
                       <a
@@ -186,7 +196,8 @@ export default function Products({ products = [], loading = false, error = null,
                     </div>
                   </div>
                 </div>
-            </motion.article>
+              </article>
+            </motion.div>
           ))}
         </div>
 
@@ -225,7 +236,7 @@ export default function Products({ products = [], loading = false, error = null,
               )}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn shrink-0 border border-white/50 bg-white/80 text-navy-800 backdrop-blur-md backdrop-saturate-150 hover:bg-white"
+              className="btn shrink-0 border border-white/50 bg-white/80 text-navy-800 hover:bg-white"
             >
               <WhatsAppIcon className="h-5 w-5" />
               Discuss on WhatsApp

@@ -27,7 +27,7 @@ export default function QuoteCta({
                 href={whatsappLink()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn border border-white/50 bg-white/80 text-navy-800 backdrop-blur-md backdrop-saturate-150 hover:bg-white"
+                className="btn border border-white/50 bg-white/80 text-navy-800 hover:bg-white"
               >
                 <WhatsAppIcon className="h-5 w-5" />
                 WhatsApp

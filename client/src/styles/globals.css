@@ -79,27 +79,42 @@
     @apply border border-white/60 bg-white/60 backdrop-blur-xl backdrop-saturate-150;
   }
 
+  /* Performance notes for everything below:
+     - backdrop-blur is reserved for the fixed navbar (.glass). On cards and buttons
+       that are mostly opaque it was barely visible yet made the GPU re-blur the
+       page behind each one; a slightly more opaque white gives the same look.
+     - Transitions name the properties they animate instead of `transition-all`,
+       so nothing expensive (filters, layout) is ever tweened by accident. */
   .glass-card {
-    @apply rounded-3xl border border-white/60 bg-white/50 p-5 sm:p-7 shadow-glass backdrop-blur-xl backdrop-saturate-150 transition-all duration-500;
+    @apply rounded-3xl border border-white/70 bg-white/75 p-5 sm:p-7 shadow-glass transition-[transform,box-shadow,border-color] duration-500 ease-out;
   }
 
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-[transform,box-shadow,background-color,border-color,color,opacity] duration-300 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2;
   }
 
-  /* Orange carries the action, navy carries the structure — same balance as the logo.
-     Alpha'd gradients + backdrop-blur give solid-color buttons a frosted sheen instead
-     of flattening them to translucent. */
+  /* Orange carries the action, navy carries the structure — same balance as the logo. */
   .btn-primary {
-    @apply btn border border-white/40 bg-gradient-to-r from-orange-500/90 to-orange-600/90 text-white shadow-lift backdrop-blur-md backdrop-saturate-150 hover:-translate-y-0.5 hover:shadow-[0_24px_56px_-16px_rgba(241,102,41,0.55)];
+    @apply btn border border-white/40 bg-gradient-to-r from-orange-500/95 to-orange-600/95 text-white shadow-lift hover:-translate-y-0.5 hover:shadow-[0_24px_56px_-16px_rgba(241,102,41,0.55)];
   }
 
   .btn-navy {
-    @apply btn border border-white/15 bg-gradient-to-r from-navy-700/90 to-navy-900/90 text-white shadow-liftNavy backdrop-blur-md backdrop-saturate-150 hover:-translate-y-0.5;
+    @apply btn border border-white/15 bg-gradient-to-r from-navy-700/95 to-navy-900/95 text-white shadow-liftNavy hover:-translate-y-0.5;
   }
 
   .btn-ghost {
-    @apply btn border border-white/60 bg-white/50 text-navy-800 backdrop-blur-xl backdrop-saturate-150 hover:border-navy-300 hover:bg-white/70;
+    @apply btn border border-white/70 bg-white/75 text-navy-800 hover:border-navy-300 hover:bg-white/90;
+  }
+
+  /* Soft background glows. A radial gradient looks like the old blurred circle
+     but costs nothing to draw, where blur(110px) on a 300–500px element was one
+     of the most expensive things on the page. */
+  .glow-navy {
+    background: radial-gradient(closest-side, rgb(200 199 230 / 0.42), rgb(200 199 230 / 0.16) 55%, transparent);
+  }
+
+  .glow-orange {
+    background: radial-gradient(closest-side, rgb(255 207 175 / 0.42), rgb(255 207 175 / 0.16) 55%, transparent);
   }
 
   .section-eyebrow {
@@ -111,7 +126,7 @@
   }
 
   .card {
-    @apply rounded-3xl border border-slate-200/80 bg-white p-7 shadow-glass transition-all duration-500;
+    @apply rounded-3xl border border-slate-200/80 bg-white p-7 shadow-glass transition-[transform,box-shadow,border-color] duration-500 ease-out;
   }
 
   .field-label {
@@ -124,6 +139,35 @@
 
   .field-error {
     @apply border-red-300 focus:border-red-400 focus:ring-red-100;
+  }
+}
+
+/* Endless decorative animations (hero rings, floating buttons, country ticker)
+   are paused while their section is off-screen — see usePauseOffscreen(). */
+.anim-paused,
+.anim-paused * {
+  animation-play-state: paused !important;
+}
+
+/* The homepage's floating product buttons bob only on devices with a mouse or
+   trackpad. Measured on an emulated mid-range phone: once the bob had started,
+   it cut homepage scrolling from ~144fps to ~100fps, and nothing about how it
+   was drawn (GPU hints, shadows, wrappers, pausing mid-scroll) removed that —
+   only not running it did. Desktop scrolls at a full frame rate either way. */
+@keyframes float-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .float-on-desktop {
+    animation: float-bob 7s ease-in-out infinite;
+    will-change: transform;
   }
 }
 

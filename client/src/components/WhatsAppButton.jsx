@@ -14,6 +14,8 @@ export function WhatsAppIcon({ className = "h-6 w-6" }) {
 export default function WhatsAppButton() {
   const [visible, setVisible] = useState(false);
 
+  // React skips the re-render when the value is unchanged, so this only
+  // renders twice per page: once on the way past 320px, once on the way back.
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 320);
     onScroll();
@@ -28,11 +30,12 @@ export default function WhatsAppButton() {
       rel="noopener noreferrer"
       aria-label="Chat with VinGo International on WhatsApp"
       onClick={() => analytics.whatsappClick("floating-button")}
-      className={`group fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-full bg-[#25D366] py-3.5 pl-4 pr-5 text-white shadow-[0_16px_40px_-12px_rgba(37,211,102,0.75)] transition-all duration-500 hover:scale-105 sm:bottom-8 sm:right-8 ${
+      className={`group fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-full bg-[#25D366] py-3.5 pl-4 pr-5 text-white shadow-[0_16px_40px_-12px_rgba(37,211,102,0.75)] transition-[transform,opacity] duration-500 ease-out [will-change:transform] hover:scale-105 sm:bottom-8 sm:right-8 ${
         visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-6 opacity-0"
       }`}
     >
-      <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-[#25D366] opacity-20" />
+      {/* The pulse only runs while the button is shown. */}
+      {visible && <span className="absolute inset-0 -z-10 animate-ping rounded-full bg-[#25D366] opacity-20" />}
       <WhatsAppIcon className="h-6 w-6 shrink-0" />
       <span className="hidden text-sm font-semibold sm:inline">Chat on WhatsApp</span>
     </a>

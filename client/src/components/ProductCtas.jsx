@@ -24,7 +24,7 @@ export default function ProductCtas({ slug, name, enquireHref, whatsappHref, mai
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => analytics.whatsappClick(`product:${name}`)}
-        className="btn border border-[#25D366]/30 bg-[#25D366]/10 text-[#128C4A] backdrop-blur-md backdrop-saturate-150 hover:bg-[#25D366]/20"
+        className="btn border border-[#25D366]/30 bg-[#25D366]/10 text-[#128C4A] hover:bg-[#25D366]/20"
       >
         <WhatsAppIcon className="h-5 w-5" />
         WhatsApp
@@ -32,7 +32,7 @@ export default function ProductCtas({ slug, name, enquireHref, whatsappHref, mai
       <a
         href={mailtoHref}
         onClick={() => analytics.emailClick(`product:${name}`)}
-        className="btn border border-navy-200 bg-navy-50/80 text-navy-800 backdrop-blur-md backdrop-saturate-150 hover:bg-navy-100"
+        className="btn border border-navy-200 bg-navy-50/80 text-navy-800 hover:bg-navy-100"
       >
         <Mail className="h-4 w-4" />
         Email

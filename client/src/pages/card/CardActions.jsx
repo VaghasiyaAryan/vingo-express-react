@@ -2,7 +2,7 @@ import { AtSign, ContactRound, Phone } from "lucide-react";
 import { analytics } from "@/lib/analytics.js";
 
 const tile =
-  "flex flex-col items-center justify-center gap-2 rounded-2xl px-1 py-3 text-center transition-all duration-200 active:scale-95";
+  "flex flex-col items-center justify-center gap-2 rounded-2xl px-1 py-3 text-center transition-transform duration-200 active:scale-95";
 
 export default function CardActions({ phoneDisplay, phoneHref, email }) {
   return (

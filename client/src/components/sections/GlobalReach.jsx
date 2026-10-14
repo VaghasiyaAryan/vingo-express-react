@@ -1,8 +1,11 @@
 import { Globe2, Quote } from "lucide-react";
 import Reveal from "@/components/Reveal.jsx";
+import { usePauseOffscreen } from "@/lib/usePauseOffscreen.js";
 import { globalMarkets, testimonials } from "@shared/content.js";
 
 export default function GlobalReach() {
+  const [tickerRef, tickerPaused] = usePauseOffscreen();
+
   return (
     <section id="reach" className="border-y border-slate-100 bg-white py-14 sm:py-20 lg:py-28">
       <div className="container-x">
@@ -18,10 +21,12 @@ export default function GlobalReach() {
         </Reveal>
       </div>
 
-      <div className="relative mt-12 overflow-hidden py-2">
+      {/* The ticker runs on its own GPU layer, stops while off-screen, and
+          pauses on hover so a visitor can read a country name. */}
+      <div ref={tickerRef} className={`group relative mt-12 overflow-hidden py-2 ${tickerPaused}`}>
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-white to-transparent" />
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-white to-transparent" />
-        <div className="flex w-max animate-marquee gap-3">
+        <div className="flex w-max animate-marquee gap-3 [will-change:transform] group-hover:[animation-play-state:paused]">
           {[...globalMarkets, ...globalMarkets].map((market, i) => (
             <span
               key={`${market}-${i}`}

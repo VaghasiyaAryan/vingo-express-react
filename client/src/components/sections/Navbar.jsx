@@ -43,9 +43,11 @@ export default function Navbar() {
     };
   }, [open]);
 
+  // The header fades its colours and shadow only — tweening the frosted-glass
+  // blur itself (what transition-all did) re-blurred the page for 0.5s each time.
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-40 transition-all duration-500 ${
+      className={`fixed inset-x-0 top-0 z-40 transition-[background-color,border-color,box-shadow] duration-500 ${
         scrolled ? "glass !border-x-0 !border-t-0 shadow-[0_2px_24px_rgba(15,23,42,0.05)]" : "bg-transparent"
       }`}
     >

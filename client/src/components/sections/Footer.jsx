@@ -74,7 +74,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className={`flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-ink-500 shadow-sm transition-all duration-200 ease-out hover:-translate-y-1 hover:scale-110 hover:shadow-lg ${hoverClass}`}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-ink-500 shadow-sm transition-[transform,box-shadow,background-color,border-color,color] duration-200 ease-out hover:-translate-y-1 hover:scale-110 hover:shadow-lg ${hoverClass}`}
                 >
                   <Icon className="h-4 w-4" />
                 </a>
@@ -84,7 +84,7 @@ export default function Footer() {
               href={whatsappLink()}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn mt-6 border border-white/30 bg-[#25D366]/90 px-5 py-2.5 text-white backdrop-blur-md backdrop-saturate-150 hover:brightness-95"
+              className="btn mt-6 border border-white/30 bg-[#25D366]/90 px-5 py-2.5 text-white hover:brightness-95"
             >
               <WhatsAppIcon className="h-4 w-4" />
               WhatsApp Us

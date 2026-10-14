@@ -7,6 +7,7 @@ import { WhatsAppIcon } from "@/components/WhatsAppButton.jsx";
 import { LogoMark } from "@/components/Logo.jsx";
 import { endpoints } from "@/lib/api.js";
 import { useApi } from "@/lib/useApi.js";
+import { usePauseOffscreen } from "@/lib/usePauseOffscreen.js";
 
 /**
  * Counts up to the stat value once it scrolls into view.
@@ -57,12 +58,13 @@ export default function Hero() {
   // request fails, the defaults are the fallback.
   const { data, error } = useApi(fetchHeroItems);
   const items = data?.items ?? (error ? hero.floatingProducts : null);
+  const [orbitRef, orbitPaused] = usePauseOffscreen();
 
   return (
     <section id="top" className="relative overflow-hidden bg-mesh-light pt-24 pb-12 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-28">
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-navy-200/25 blur-[120px]" />
-        <div className="absolute bottom-0 right-0 h-[380px] w-[380px] rounded-full bg-orange-200/25 blur-[100px]" />
+        <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 scale-150 glow-navy" />
+        <div className="absolute bottom-0 right-0 h-[380px] w-[380px] scale-150 glow-orange" />
       </div>
 
       <div className="container-x grid items-center gap-10 sm:gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
@@ -112,7 +114,7 @@ export default function Hero() {
               href={whatsappLink()}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn border border-[#25D366]/30 bg-[#25D366]/10 text-[#128C4A] backdrop-blur-md backdrop-saturate-150 hover:bg-[#25D366]/20"
+              className="btn border border-[#25D366]/30 bg-[#25D366]/10 text-[#128C4A] hover:bg-[#25D366]/20"
             >
               <WhatsAppIcon className="h-5 w-5" />
               Chat on WhatsApp
@@ -153,19 +155,23 @@ export default function Hero() {
         </div>
 
         <motion.div
+          ref={orbitRef}
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="relative mx-auto aspect-square w-full max-w-[320px] sm:max-w-[440px]"
+          className={`relative mx-auto aspect-square w-full max-w-[320px] sm:max-w-[440px] ${orbitPaused}`}
         >
           {/* Decorative rings and logo — hidden from screen readers; the
-              floating buttons below are real links and stay reachable. */}
+              floating buttons below are real links and stay reachable.
+              Each moving piece gets its own GPU layer (will-change) so rotating
+              or floating it never repaints the rest. No backdrop-blur here: the
+              logo sits over a spinning ring and was being re-blurred every frame. */}
           <div aria-hidden="true">
             <div className="absolute inset-[8%] rounded-full bg-gradient-to-br from-navy-100 via-white to-orange-100 shadow-[inset_0_2px_40px_rgba(46,44,117,0.12)]" />
-            <div className="absolute inset-[8%] animate-[spin_28s_linear_infinite] rounded-full border border-dashed border-orange-300/70" />
-            <div className="absolute inset-[20%] animate-[spin_20s_linear_infinite_reverse] rounded-full border border-navy-200" />
+            <div className="absolute inset-[8%] animate-[spin_28s_linear_infinite] rounded-full border border-dashed border-orange-300/70 [will-change:transform]" />
+            <div className="absolute inset-[20%] animate-[spin_20s_linear_infinite_reverse] rounded-full border border-navy-200 [will-change:transform]" />
 
-            <div className="absolute inset-[26%] flex items-center justify-center rounded-full bg-white/85 shadow-glass backdrop-blur-sm">
+            <div className="absolute inset-[26%] flex items-center justify-center rounded-full bg-white/95 shadow-glass">
               <LogoMark className="h-[58%]" />
             </div>
           </div>
@@ -175,27 +181,26 @@ export default function Hero() {
             if (!chip) return null;
             // No product chosen (or it has since been hidden) — open the catalogue.
             const href = item.slug ? `/products/${item.slug}` : "/products";
+            // Fade-in (framer-motion) on the outer wrapper, the endless bob (CSS)
+            // on the inner one. The bob runs on desktop only — see
+            // .float-on-desktop in globals.css for why phones skip it.
             return (
               <motion.div
                 key={i}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5, delay: chip.delay * 0.25 }}
-                className="absolute z-10 animate-float"
-                style={{
-                  top: chip.top,
-                  left: chip.left,
-                  right: chip.right,
-                  bottom: chip.bottom,
-                  animationDelay: `${chip.delay}s`,
-                }}
+                className="absolute z-10"
+                style={{ top: chip.top, left: chip.left, right: chip.right, bottom: chip.bottom }}
               >
-                <Link
-                  to={href}
-                  className="inline-flex items-center rounded-full border border-white bg-white/90 px-4 py-2 text-xs font-semibold text-ink-700 shadow-glass backdrop-blur transition-all duration-300 hover:border-orange-200 hover:bg-white hover:text-navy-700 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-400 focus-visible:ring-offset-2"
-                >
-                  {item.label}
-                </Link>
+                <div className="float-on-desktop" style={{ animationDelay: `${chip.delay}s` }}>
+                  <Link
+                    to={href}
+                    className="inline-flex items-center rounded-full border border-white bg-white/95 px-4 py-2 text-xs font-semibold text-ink-700 shadow-glass transition-[color,background-color,border-color,box-shadow] duration-300 hover:border-orange-200 hover:bg-white hover:text-navy-700 hover:shadow-lift focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-400 focus-visible:ring-offset-2"
+                  >
+                    {item.label}
+                  </Link>
+                </div>
               </motion.div>
             );
           })}

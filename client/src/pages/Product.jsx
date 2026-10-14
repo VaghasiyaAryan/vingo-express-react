@@ -147,7 +147,7 @@ export default function Product() {
                       <Link
                         key={r.slug}
                         to={`/products/${r.slug}`}
-                        className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-glass transition-all duration-500 hover:-translate-y-1 hover:border-navy-200 hover:shadow-lift"
+                        className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-glass transition-[transform,box-shadow,border-color] ease-out duration-500 hover:-translate-y-1 hover:border-navy-200 hover:shadow-lift"
                       >
                         <span className="block h-32 w-full overflow-hidden">
                           <ProductVisual product={r} rounded="rounded-none" />

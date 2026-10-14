@@ -15,8 +15,8 @@ export default function WhyUs() {
   return (
     <section id="why-us" className="relative overflow-hidden border-y border-slate-100 bg-slate-50/60 py-14 sm:py-20 lg:py-28">
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="absolute left-[8%] top-0 h-[320px] w-[320px] rounded-full bg-navy-200/30 blur-[110px]" />
-        <div className="absolute bottom-0 right-[10%] h-[300px] w-[300px] rounded-full bg-orange-200/30 blur-[110px]" />
+        <div className="absolute left-[8%] top-0 h-[320px] w-[320px] scale-150 glow-navy" />
+        <div className="absolute bottom-0 right-[10%] h-[300px] w-[300px] scale-150 glow-orange" />
       </div>
 
       <div className="container-x">
@@ -34,7 +34,7 @@ export default function WhyUs() {
             const Icon = icons[item.icon] ?? ShieldCheck;
             return (
               <Reveal key={item.title} delay={i * 0.06}>
-                <div className="group flex h-full gap-4 rounded-2xl border border-white/60 bg-white/50 p-4 backdrop-blur-xl backdrop-saturate-150 transition-all duration-500 hover:-translate-y-1 hover:border-navy-200 hover:shadow-glass sm:block sm:p-6">
+                <div className="group flex h-full gap-4 rounded-2xl border border-white/70 bg-white/75 p-4 transition-[transform,box-shadow,border-color] duration-500 ease-out hover:-translate-y-1 hover:border-navy-200 hover:shadow-glass sm:block sm:p-6">
                   <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy-50 text-navy-700 transition-colors group-hover:bg-navy-600 group-hover:text-white sm:h-11 sm:w-11">
                     <Icon className="h-5 w-5" />
                   </span>
