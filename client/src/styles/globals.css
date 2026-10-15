@@ -14,14 +14,20 @@
      text I-beam over every heading, paragraph and card. The I-beam is kept only
      where something can actually be typed; links and buttons keep the hand
      (browser and Tailwind defaults). Text can still be selected and copied. */
+  /* caret-color hides the blinking text caret that appears in ordinary text
+     when a visitor's browser has Caret Browsing on (F7 in Chrome/Edge) —
+     clicking a heading would otherwise drop a blinking line into it. Fields
+     you can type in get their caret back just below. */
   html {
     cursor: default;
+    caret-color: transparent;
   }
 
   input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="submit"], [type="button"], [type="reset"], [type="image"]),
   textarea,
   [contenteditable]:not([contenteditable="false"]) {
     cursor: text;
+    caret-color: auto;
   }
 
   input:is([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="submit"], [type="button"], [type="reset"], [type="image"]),
