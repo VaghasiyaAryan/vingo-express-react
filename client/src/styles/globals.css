@@ -10,6 +10,33 @@
     --font-display: "Fraunces";
   }
 
+  /* Cursors: the plain arrow everywhere by default, instead of the browser's
+     text I-beam over every heading, paragraph and card. The I-beam is kept only
+     where something can actually be typed; links and buttons keep the hand
+     (browser and Tailwind defaults). Text can still be selected and copied. */
+  html {
+    cursor: default;
+  }
+
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="submit"], [type="button"], [type="reset"], [type="image"]),
+  textarea,
+  [contenteditable]:not([contenteditable="false"]) {
+    cursor: text;
+  }
+
+  input:is([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="submit"], [type="button"], [type="reset"], [type="image"]),
+  select,
+  summary {
+    cursor: pointer;
+  }
+
+  /* Disabled controls: no I-beam or hand on something that can't be used. */
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
+
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 6rem;
