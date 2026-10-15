@@ -43,6 +43,8 @@ export async function recordAudit({ req, admin, actor, action, detail, target, s
  */
 const ACTIONS = [
   ["POST", /^\/products$/, "Created product", (req) => req.body?.name],
+  // Before the "/products/:id" pattern below, which would also match "order".
+  ["PUT", /^\/products\/order$/, "Reordered products", (req) => (Array.isArray(req.body?.ids) ? `${req.body.ids.length} products` : null)],
   ["PUT", /^\/products\/([^/]+)$/, "Edited product", (req) => req.body?.name],
   ["PATCH", /^\/products\/([^/]+)\/active$/, "Changed product visibility", (req) => (req.body?.active ? "shown" : "hidden")],
   ["DELETE", /^\/products\/([^/]+)$/, "Deleted product"],

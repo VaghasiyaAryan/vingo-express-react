@@ -81,8 +81,38 @@ function validate(data) {
 adminProductsRouter.get(
   "/",
   asyncRoute(async (req, res) => {
-    const products = await prisma.product.findMany({ orderBy: [{ category: "asc" }, { sortOrder: "asc" }] });
+    // The same order visitors see (homepage preview, catalogue page), so
+    // dragging a row in the admin list moves it on the website too.
+    const products = await prisma.product.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
     res.json({ products });
+  })
+);
+
+/**
+ * Saves a new display order. The body must list every product id exactly
+ * once — a partial or stale list (another admin added or deleted a product
+ * meanwhile) is refused rather than leaving gaps or duplicates. All rows are
+ * updated in one transaction, so the order is never half-saved.
+ */
+adminProductsRouter.put(
+  "/order",
+  asyncRoute(async (req, res) => {
+    const ids = req.body?.ids;
+    const existing = await prisma.product.findMany({ select: { id: true } });
+    const known = new Set(existing.map((p) => p.id));
+
+    const valid =
+      Array.isArray(ids) &&
+      ids.length === known.size &&
+      new Set(ids).size === ids.length &&
+      ids.every((id) => typeof id === "string" && known.has(id));
+    if (!valid) {
+      res.status(409).json({ error: "The product list has changed since you opened it. Reload the page and try again." });
+      return;
+    }
+
+    await prisma.$transaction(ids.map((id, index) => prisma.product.update({ where: { id }, data: { sortOrder: index } })));
+    res.json({ ok: true });
   })
 );
 
@@ -114,9 +144,13 @@ adminProductsRouter.post(
       return;
     }
 
-    // New products go to the end of the list; the admin can reorder later.
-    const count = await prisma.product.count();
-    const product = await prisma.product.create({ data: { ...withoutHelpers(data), sortOrder: count } });
+    // New products go to the end of the list; the admin can drag them into
+    // place later. After the last position in use — not the product count,
+    // which collides with existing positions once a product has been deleted.
+    const { _max } = await prisma.product.aggregate({ _max: { sortOrder: true } });
+    const product = await prisma.product.create({
+      data: { ...withoutHelpers(data), sortOrder: (_max.sortOrder ?? -1) + 1 },
+    });
     res.status(201).json({ product });
   })
 );

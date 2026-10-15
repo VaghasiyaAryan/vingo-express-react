@@ -128,6 +128,7 @@ export const endpoints = {
     updateProduct: (id, data) => api.put(`/api/admin/products/${id}`, data),
     setProductActive: (id, active) => api.patch(`/api/admin/products/${id}/active`, { active }),
     deleteProduct: (id) => api.delete(`/api/admin/products/${id}`),
+    saveProductOrder: (ids) => api.put("/api/admin/products/order", { ids }),
     uploadImage: (file) => request("/api/admin/images", { method: "POST", file }),
 
     admins: (options) => api.get("/api/admin/admins", options),
