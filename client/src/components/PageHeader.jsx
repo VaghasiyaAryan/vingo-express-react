@@ -1,6 +1,5 @@
-import { Link } from "react-router-dom";
 import { m } from "framer-motion";
-import { ChevronRight } from "lucide-react";
+import Breadcrumb from "@/components/Breadcrumb.jsx";
 
 /**
  * The banner at the top of every inner page: breadcrumb, the page's one <h1>,
@@ -15,13 +14,7 @@ export default function PageHeader({ eyebrow, title, subtitle, crumb }) {
       </div>
 
       <div className="container-x">
-        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1.5 text-xs text-ink-500">
-          <Link to="/" className="hover:text-navy-700">
-            Home
-          </Link>
-          <ChevronRight className="h-3 w-3" />
-          <span className="font-medium text-ink-700">{crumb ?? title}</span>
-        </nav>
+        <Breadcrumb current={crumb ?? title} />
 
         <m.div
           initial={{ opacity: 0, y: 16 }}

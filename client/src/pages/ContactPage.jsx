@@ -1,6 +1,5 @@
 import { useCallback } from "react";
 import SiteLayout from "@/components/SiteLayout.jsx";
-import PageHeader from "@/components/PageHeader.jsx";
 import Enquiry from "@/components/sections/Enquiry.jsx";
 import { endpoints } from "@/lib/api.js";
 import { useApi } from "@/lib/useApi.js";
@@ -19,13 +18,8 @@ export default function ContactPage() {
 
   return (
     <SiteLayout>
-      <PageHeader
-        eyebrow="Contact"
-        title="Contact us"
-        subtitle="Request a quotation, ask for samples, or just say hello — by form, phone, email or WhatsApp."
-        crumb="Contact"
-      />
-      <Enquiry products={data?.products ?? []} />
+      {/* The enquiry section opens the page itself (breadcrumb + the single <h1>). */}
+      <Enquiry products={data?.products ?? []} page />
     </SiteLayout>
   );
 }

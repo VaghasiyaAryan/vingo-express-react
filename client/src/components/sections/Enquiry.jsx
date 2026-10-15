@@ -11,6 +11,7 @@ import {
 import { countries, countryByCode, formatNational } from "@shared/countries.js";
 import { WhatsAppIcon } from "@/components/WhatsAppButton.jsx";
 import CountrySelect from "@/components/CountrySelect.jsx";
+import Breadcrumb from "@/components/Breadcrumb.jsx";
 import Select from "@/components/Select.jsx";
 import { analytics } from "@/lib/analytics.js";
 import { endpoints } from "@/lib/api.js";
@@ -40,7 +41,13 @@ const EMPTY = {
 
 const DEFAULT_PHONE_COUNTRY = "IN";
 
-export default function Enquiry({ products = [] }) {
+/**
+ * The enquiry form with contact details. `page`: this section opens the
+ * Contact page itself — breadcrumb and the page's one <h1> — instead of
+ * sitting under a separate page banner.
+ */
+export default function Enquiry({ products = [], page = false }) {
+  const Heading = page ? "h1" : "h2";
   const [form, setForm] = useState(EMPTY);
   const [status, setStatus] = useState("idle"); // idle | sending | success | error
   const [errors, setErrors] = useState({});
@@ -166,17 +173,25 @@ export default function Enquiry({ products = [] }) {
   }
 
   return (
-    <section id="enquiry" className="relative overflow-hidden py-14 sm:py-20 lg:py-28">
+    <section
+      id="enquiry"
+      className={`relative overflow-hidden ${page ? "pt-24 pb-14 sm:pt-32 sm:pb-20 lg:pt-36 lg:pb-28" : "py-14 sm:py-20 lg:py-28"}`}
+    >
       <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white via-navy-50/50 to-white" />
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute right-[6%] top-10 h-[280px] w-[280px] scale-150 glow-orange" />
         <div className="absolute bottom-0 left-[4%] h-[320px] w-[320px] scale-150 glow-navy" />
       </div>
 
+      {page && (
+        <div className="container-x mb-6 sm:mb-8">
+          <Breadcrumb current="Contact" />
+        </div>
+      )}
       <div className="container-x grid gap-12 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14">
         <div>
-          <span className="section-eyebrow">Get in Touch</span>
-          <h2 className="section-title mt-5">Request a quotation</h2>
+          <span className="section-eyebrow">{page ? "Contact us" : "Get in Touch"}</span>
+          <Heading className="section-title mt-5">Request a quotation</Heading>
           <p className="mt-5 text-base leading-relaxed text-ink-500">
             Share your product, quantity and destination port. We will come back with pricing, specifications and
             sample options — usually within one working day.
