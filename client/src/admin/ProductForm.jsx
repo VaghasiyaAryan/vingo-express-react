@@ -5,7 +5,6 @@ import { productCategories } from "@shared/content.js";
 import { endpoints } from "@/lib/api.js";
 
 const FORM_OPTIONS = ["flakes", "slices", "dices", "granules", "powder", "blend"];
-const DEFAULT_COLORS = { base: "#f1f5f9", accent: "#cbd5e1", deep: "#94a3b8" };
 // Matches MAX_IMAGE_BYTES in server/src/routes/images.js.
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
 
@@ -145,38 +144,18 @@ function ImageField({ value, onChange, onUploadingChange }) {
   );
 }
 
-function ColorField({ id, label, value, onChange }) {
-  return (
-    <div>
-      <label className="field-label" htmlFor={id}>
-        {label} colour
-      </label>
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          aria-label={`${label} colour picker`}
-          className="h-11 w-11 shrink-0 cursor-pointer rounded-lg border border-slate-200"
-        />
-        <input id={id} name={id} value={value} onChange={(e) => onChange(e.target.value)} className="field" />
-      </div>
-    </div>
-  );
-}
-
-/** Turns a Product row into the flat, all-strings shape the form edits. */
+/**
+ * Turns a Product row into the flat, all-strings shape the form edits.
+ * Illustration colours are not edited here: the server keeps a product's
+ * existing colours on save and gives new products the defaults.
+ */
 export function formStateFrom(product) {
-  const colors = product?.colors || DEFAULT_COLORS;
   return {
     name: product?.name ?? "",
     slug: product?.slug ?? "",
     category: product?.category ?? "",
     form: product?.form ?? "flakes",
     image: product?.image ?? "",
-    colorBase: colors.base ?? DEFAULT_COLORS.base,
-    colorAccent: colors.accent ?? DEFAULT_COLORS.accent,
-    colorDeep: colors.deep ?? DEFAULT_COLORS.deep,
     short: product?.short ?? "",
     description: product?.description ?? "",
     forms: product?.forms?.join(", ") ?? "",
@@ -194,7 +173,6 @@ export function payloadFrom(state) {
     category: state.category,
     form: state.form,
     image: state.image,
-    colors: { base: state.colorBase, accent: state.colorAccent, deep: state.colorDeep },
     short: state.short,
     description: state.description,
     forms: state.forms,
@@ -272,12 +250,6 @@ export default function ProductForm({ initialState, error, pending, submitLabel,
       </div>
 
       <ImageField value={state.image} onChange={setValue("image")} onUploadingChange={setImageUploading} />
-
-      <div className="grid gap-5 sm:grid-cols-3">
-        <ColorField id="colorBase" label="Base" value={state.colorBase} onChange={setValue("colorBase")} />
-        <ColorField id="colorAccent" label="Accent" value={state.colorAccent} onChange={setValue("colorAccent")} />
-        <ColorField id="colorDeep" label="Deep" value={state.colorDeep} onChange={setValue("colorDeep")} />
-      </div>
 
       <div>
         <label className="field-label" htmlFor="short">

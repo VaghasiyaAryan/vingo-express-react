@@ -37,8 +37,18 @@ function imageField(value) {
 function productDataFromBody(body = {}) {
   const name = clean(body.name, 160);
   const slugInput = clean(body.slug, 160);
-  const colors = body.colors && typeof body.colors === "object" ? body.colors : {};
   const { image, imageError } = imageField(body.image);
+  // The admin form no longer edits illustration colours. When none are sent,
+  // `colors` is left out: an update keeps the product's existing colours and
+  // a new product gets the defaults (see the create route).
+  const colors =
+    body.colors && typeof body.colors === "object"
+      ? {
+          base: hexColor(body.colors.base, DEFAULT_COLORS.base),
+          accent: hexColor(body.colors.accent, DEFAULT_COLORS.accent),
+          deep: hexColor(body.colors.deep, DEFAULT_COLORS.deep),
+        }
+      : undefined;
 
   return {
     slug: slugify(slugInput || name),
@@ -48,11 +58,7 @@ function productDataFromBody(body = {}) {
     // Not a column — read by validate() and removed before saving.
     _imageError: imageError,
     form: FORM_OPTIONS.includes(body.form) ? body.form : "flakes",
-    colors: {
-      base: hexColor(colors.base, DEFAULT_COLORS.base),
-      accent: hexColor(colors.accent, DEFAULT_COLORS.accent),
-      deep: hexColor(colors.deep, DEFAULT_COLORS.deep),
-    },
+    ...(colors ? { colors } : {}),
     short: clean(body.short, 400),
     description: clean(body.description, 4000),
     forms: parseListField(body.forms),
@@ -151,7 +157,8 @@ adminProductsRouter.post(
     // which collides with existing positions once a product has been deleted.
     const { _max } = await prisma.product.aggregate({ _max: { sortOrder: true } });
     const product = await prisma.product.create({
-      data: { ...withoutHelpers(data), sortOrder: (_max.sortOrder ?? -1) + 1 },
+      // Default illustration colours unless the request supplied some.
+      data: { colors: DEFAULT_COLORS, ...withoutHelpers(data), sortOrder: (_max.sortOrder ?? -1) + 1 },
     });
     res.status(201).json({ product });
   })
