@@ -81,9 +81,11 @@ function validate(data) {
 adminProductsRouter.get(
   "/",
   asyncRoute(async (req, res) => {
-    // The same order visitors see (homepage preview, catalogue page), so
-    // dragging a row in the admin list moves it on the website too.
-    const products = await prisma.product.findMany({ orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }] });
+    // Visible products first, in the order visitors see them (homepage
+    // preview, catalogue page); hidden products after, in their saved order.
+    const products = await prisma.product.findMany({
+      orderBy: [{ active: "desc" }, { sortOrder: "asc" }, { createdAt: "asc" }],
+    });
     res.json({ products });
   })
 );

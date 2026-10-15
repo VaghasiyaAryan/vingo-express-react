@@ -51,7 +51,7 @@ function SortableRow({ product, position, dragDisabled, onToggled, onDeleted }) 
           type="button"
           {...attributes}
           {...listeners}
-          aria-label={`Move ${product.name} (position ${position})`}
+          aria-label={position ? `Move ${product.name} (position ${position} on the website)` : `Move ${product.name} (hidden product)`}
           title="Drag to reorder"
           disabled={dragDisabled}
           className="flex h-9 w-7 touch-none items-center justify-center rounded-md text-ink-400 transition-colors hover:bg-navy-50 hover:text-navy-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-400 enabled:cursor-grab enabled:active:cursor-grabbing disabled:opacity-40"
@@ -59,9 +59,12 @@ function SortableRow({ product, position, dragDisabled, onToggled, onDeleted }) 
           <GripVertical className="h-4 w-4" />
         </button>
       </td>
-      <td className="w-px whitespace-nowrap py-3 pl-1 pr-2 text-xs font-semibold tabular-nums text-ink-400">{position}</td>
+      {/* Website position for visible products; hidden ones have none. */}
+      <td className="w-px whitespace-nowrap py-3 pl-1 pr-2 text-xs font-semibold tabular-nums text-ink-400">
+        {position ?? <span aria-label="Not on the website">–</span>}
+      </td>
       <td className="px-5 py-3">
-        <div className="flex items-center gap-3">
+        <div className={`flex items-center gap-3 ${position ? "" : "opacity-60"}`}>
           <span className="h-10 w-10 shrink-0 overflow-hidden rounded-lg">
             <ProductVisual product={product} rounded="rounded-lg" sizes="64px" />
           </span>
@@ -93,7 +96,18 @@ export default function ProductsList() {
 
   const fetchProducts = useCallback((signal) => endpoints.admin.products({ signal }), []);
   const { data, error, loading, mutate, reload } = useApi(fetchProducts);
-  const products = useMemo(() => data?.products ?? [], [data]);
+  // Visible products first, in website order; hidden ones after, in their
+  // saved order. Sorted here (not just on the server) so a product moves to
+  // the right group the moment its visibility is switched.
+  const products = useMemo(
+    () =>
+      [...(data?.products ?? [])].sort(
+        (a, b) => Number(b.active) - Number(a.active) || a.sortOrder - b.sortOrder || a.createdAt.localeCompare(b.createdAt)
+      ),
+    [data]
+  );
+  const visible = useMemo(() => products.filter((p) => p.active), [products]);
+  const hidden = useMemo(() => products.filter((p) => !p.active), [products]);
   const [savingOrder, setSavingOrder] = useState(false);
 
   // Mouse/touch: a drag starts after moving 4px, so a plain click on the handle
@@ -105,35 +119,58 @@ export default function ProductsList() {
   );
 
   const nameOf = useCallback((id) => products.find((p) => p.id === id)?.name ?? "product", [products]);
-  const positionOf = useCallback((id) => products.findIndex((p) => p.id === id) + 1, [products]);
+  /** The group a row belongs to, and its 1-based place within that group. */
+  const groupOf = useCallback((id) => (visible.some((p) => p.id === id) ? visible : hidden), [visible, hidden]);
+  const placeOf = useCallback((id) => groupOf(id).findIndex((p) => p.id === id) + 1, [groupOf]);
+  const groupLabel = useCallback((id) => (groupOf(id) === visible ? "on the website" : "among hidden products"), [groupOf, visible]);
+
+  // Rows only ever land on a row of their own group: visible products can't be
+  // dropped among hidden ones or the other way round (use the visibility
+  // switch for that), so the two groups never mix.
+  const sameGroupCollision = useCallback(
+    (args) => {
+      const group = groupOf(args.active.id);
+      return closestCenter({ ...args, droppableContainers: args.droppableContainers.filter((c) => group.some((p) => p.id === c.id)) });
+    },
+    [groupOf]
+  );
 
   // What a screen reader says while reordering — product names, not ids.
   const announcements = useMemo(
     () => ({
-      onDragStart: ({ active }) => `Picked up ${nameOf(active.id)}, position ${positionOf(active.id)} of ${products.length}.`,
+      onDragStart: ({ active }) =>
+        `Picked up ${nameOf(active.id)}, position ${placeOf(active.id)} of ${groupOf(active.id).length} ${groupLabel(active.id)}.`,
       onDragOver: ({ active, over }) =>
-        over ? `${nameOf(active.id)} moved to position ${positionOf(over.id)} of ${products.length}.` : undefined,
+        over ? `${nameOf(active.id)} moved to position ${placeOf(over.id)} of ${groupOf(active.id).length}.` : undefined,
       onDragEnd: ({ active, over }) =>
-        over ? `${nameOf(active.id)} dropped at position ${positionOf(over.id)}. Saving order.` : `${nameOf(active.id)} dropped.`,
-      onDragCancel: ({ active }) => `Reordering cancelled. ${nameOf(active.id)} returned to position ${positionOf(active.id)}.`,
+        over ? `${nameOf(active.id)} dropped at position ${placeOf(over.id)}. Saving order.` : `${nameOf(active.id)} dropped.`,
+      onDragCancel: ({ active }) => `Reordering cancelled. ${nameOf(active.id)} returned to position ${placeOf(active.id)}.`,
     }),
-    [nameOf, positionOf, products.length]
+    [nameOf, placeOf, groupOf, groupLabel]
   );
 
   /**
-   * Moves the row immediately, then saves. If the save fails the list snaps
-   * back so it never shows an order the website does not have; if the list
-   * changed elsewhere meanwhile, it reloads.
+   * Moves the row within its group immediately, then saves the whole list —
+   * visible products first, hidden after — so the saved positions always match
+   * what this page shows. If the save fails the list snaps back so it never
+   * shows an order the website does not have; if the list changed elsewhere
+   * meanwhile, it reloads.
    */
   async function handleDragEnd({ active, over }) {
     if (!over || active.id === over.id) return;
-    const previous = products;
-    const next = arrayMove(previous, positionOf(active.id) - 1, positionOf(over.id) - 1);
-    mutate((current) => ({ ...current, products: next }));
+    const group = groupOf(active.id);
+    if (!group.some((p) => p.id === over.id)) return;
+
+    const moved = arrayMove(group, placeOf(active.id) - 1, placeOf(over.id) - 1);
+    const ordered = group === visible ? [...moved, ...hidden] : [...visible, ...moved];
+    const positions = new Map(ordered.map((p, i) => [p.id, i]));
+
+    const previous = data.products;
+    mutate((current) => ({ ...current, products: current.products.map((p) => ({ ...p, sortOrder: positions.get(p.id) ?? p.sortOrder })) }));
     setSavingOrder(true);
     try {
-      await endpoints.admin.saveProductOrder(next.map((p) => p.id));
-      showToast("Order saved — the website now shows products in this order.");
+      await endpoints.admin.saveProductOrder(ordered.map((p) => p.id));
+      showToast(group === visible ? "Order saved — the website now shows products in this order." : "Order of hidden products saved.");
     } catch (err) {
       mutate((current) => ({ ...current, products: previous }));
       showToast(err.message || "Could not save the new order. Please try again.", "error");
@@ -219,7 +256,7 @@ export default function ProductsList() {
           <p className="mt-8 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-ink-500">
             <GripVertical className="h-4 w-4 text-ink-400" aria-hidden="true" />
             Drag the handle to set the order products appear on the website — the homepage shows the first three.
-            Changes save automatically.
+            Hidden products are listed below the visible ones. Changes save automatically.
             {savingOrder && (
               <span className="inline-flex items-center gap-1 font-medium text-navy-700">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…
@@ -230,7 +267,7 @@ export default function ProductsList() {
             <div className="overflow-x-auto">
               <DndContext
                 sensors={sensors}
-                collisionDetection={closestCenter}
+                collisionDetection={sameGroupCollision}
                 modifiers={[restrictToVerticalAxis, restrictToParentElement]}
                 onDragEnd={handleDragEnd}
                 accessibility={{ announcements }}
@@ -246,20 +283,52 @@ export default function ProductsList() {
                       <th className="px-5 py-3.5 font-semibold" aria-label="Actions" />
                     </tr>
                   </thead>
-                  <SortableContext items={products.map((p) => p.id)} strategy={verticalListSortingStrategy}>
-                    <tbody className="divide-y divide-slate-100">
-                      {products.map((product, i) => (
-                        <SortableRow
-                          key={product.id}
-                          product={product}
-                          position={i + 1}
-                          dragDisabled={savingOrder}
-                          onToggled={handleToggled}
-                          onDeleted={handleDeleted}
-                        />
-                      ))}
-                    </tbody>
-                  </SortableContext>
+                  {/* Each group is its own <tbody>, so restrictToParentElement keeps
+                      a dragged row inside its group. */}
+                  {visible.length > 0 && (
+                    <SortableContext items={visible.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                      <tbody className="divide-y divide-slate-100">
+                        {visible.map((product, i) => (
+                          <SortableRow
+                            key={product.id}
+                            product={product}
+                            position={i + 1}
+                            dragDisabled={savingOrder}
+                            onToggled={handleToggled}
+                            onDeleted={handleDeleted}
+                          />
+                        ))}
+                      </tbody>
+                    </SortableContext>
+                  )}
+                  {hidden.length > 0 && (
+                    <>
+                      <tbody>
+                        <tr className="border-y border-slate-200 bg-slate-50">
+                          <td colSpan={6} className="px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-ink-500">
+                            Hidden from the website · {hidden.length}
+                            <span className="ml-2 font-normal normal-case tracking-normal text-ink-400">
+                              Switch one to Active to show it on the site.
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                      <SortableContext items={hidden.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                        <tbody className="divide-y divide-slate-100">
+                          {hidden.map((product) => (
+                            <SortableRow
+                              key={product.id}
+                              product={product}
+                              position={null}
+                              dragDisabled={savingOrder}
+                              onToggled={handleToggled}
+                              onDeleted={handleDeleted}
+                            />
+                          ))}
+                        </tbody>
+                      </SortableContext>
+                    </>
+                  )}
                 </table>
               </DndContext>
             </div>
