@@ -16,8 +16,8 @@ function esc(value) {
 }
 
 function buildVcf() {
-  const { firstName, lastName, role, organization, phoneHref, phoneDisplay, email, websiteUrl, address, photo } =
-    businessCard;
+  const { firstName, lastName, role, organization, phoneHref, phoneDisplay, email, websiteUrl, photo } = businessCard;
+  const { street, city, region, postalCode, country } = company.addressParts;
 
   const lines = [
     "BEGIN:VCARD",
@@ -32,7 +32,7 @@ function buildVcf() {
     `EMAIL;TYPE=INTERNET,WORK:${esc(email)}`,
     `URL:${esc(websiteUrl)}`,
     // ADR is structured too: PO;Extended;Street;City;Region;PostalCode;Country
-    `ADR;TYPE=WORK:;;${esc(address)};;;;`,
+    `ADR;TYPE=WORK:;;${esc(street)};${esc(city)};${esc(region)};${esc(postalCode)};${esc(country)}`,
     `NOTE:${esc(company.tagline)}`,
   ];
 

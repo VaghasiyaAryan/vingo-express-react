@@ -38,7 +38,16 @@ export const company = {
   website: SITE_URL.replace(/^https?:\/\//, ""),
   websiteUrl: SITE_URL,
   email: "hello@vingointernational.com",
-  address: "Surat, Gujarat, India",
+  address: "481, Ar Mall, Mota Varachha, Surat, Gujarat, India - 394101",
+  // The same address in parts, for the structured data and the vCard.
+  addressParts: {
+    street: "481, Ar Mall, Mota Varachha",
+    city: "Surat",
+    region: "Gujarat",
+    postalCode: "394101",
+    country: "India",
+    countryCode: "IN",
+  },
 };
 
 export const social = {

@@ -54,8 +54,15 @@ const SHARE_IMAGE = {
   alt: `${company.shortName} — exporter of dehydrated fruits, vegetables, powders and instant food mixes from India`,
 };
 
-/** "Surat, Gujarat, India" → locality + region. Only what the business has published — no street address is invented. */
-const [addressLocality, addressRegion] = company.address.split(",").map((s) => s.trim());
+/** The business's published address, as schema.org parts. */
+const postalAddress = {
+  "@type": "PostalAddress",
+  streetAddress: company.addressParts.street,
+  addressLocality: company.addressParts.city,
+  addressRegion: company.addressParts.region,
+  postalCode: company.addressParts.postalCode,
+  addressCountry: company.addressParts.countryCode,
+};
 
 const BUSINESS_ID = `${BASE}/#business`;
 
@@ -78,7 +85,7 @@ const localBusinessLd = {
     "Exporter of dehydrated fruits, dehydrated vegetables, fruit and vegetable powders, and dehydrated instant food mixes from India.",
   telephone: company.phoneHref,
   email: company.email,
-  address: { "@type": "PostalAddress", addressLocality, addressRegion, addressCountry: "IN" },
+  address: postalAddress,
   areaServed: globalMarkets.map((name) => ({ "@type": "Country", name })),
   sameAs: officialProfiles,
   contactPoint: {

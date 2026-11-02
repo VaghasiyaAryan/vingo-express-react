@@ -83,7 +83,7 @@ wellKnownRouter.get(
     const lines = [
       `# ${company.name}`,
       "",
-      `> ${company.name} is an exporter based in ${company.address}, supplying dehydrated fruits, dehydrated vegetables, fruit and vegetable powders, and dehydrated instant food mixes to food manufacturers, distributors and retailers worldwide. Samples, LCL and FCL orders; custom cuts, mesh sizes and private-label packaging on request.`,
+      `> ${company.name} is an exporter based in ${company.addressParts.city}, ${company.addressParts.region}, ${company.addressParts.country}, supplying dehydrated fruits, dehydrated vegetables, fruit and vegetable powders, and dehydrated instant food mixes to food manufacturers, distributors and retailers worldwide. Samples, LCL and FCL orders; custom cuts, mesh sizes and private-label packaging on request.`,
       "",
       `- Phone / WhatsApp: ${company.phoneDisplay}`,
       `- Email: ${company.email}`,
