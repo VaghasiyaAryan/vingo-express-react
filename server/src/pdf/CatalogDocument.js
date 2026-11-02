@@ -30,15 +30,6 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const LOGO_SRC = fs.readFileSync(path.join(here, "assets", "vingo-logo.png"));
 const ICON_SRC = fs.readFileSync(path.join(here, "assets", "vingo-icon.png"));
 
-// Real contact details as printed on the official VinGo International
-// letterhead — kept local to the PDF rather than shared/content.js, which
-// still has placeholder values pending a decision on the public site.
-const LETTERHEAD_CONTACT = {
-  phone: "+91 93132 51136",
-  email: "hello@vingointernational.com",
-  website: "www.vingo.international",
-};
-
 const styles = StyleSheet.create({
   page: { paddingTop: 96, paddingBottom: 110, paddingHorizontal: 48, fontSize: 10, color: INK, fontFamily: "Helvetica" },
   coverPage: { paddingTop: 200, paddingBottom: 110, paddingHorizontal: 56, fontFamily: "Helvetica", color: INK },
@@ -57,7 +48,7 @@ const styles = StyleSheet.create({
   footerRule: { position: "absolute", bottom: 78, left: 48, right: 48, borderTopWidth: 1, borderTopColor: "#e2e8f0" },
   footerRow: { position: "absolute", bottom: 52, left: 48, right: 48, flexDirection: "row", justifyContent: "space-between" },
   footerLabel: { fontSize: 9, color: MUTED },
-  footerWebsite: { position: "absolute", bottom: 36, left: 48, fontSize: 9, color: MUTED },
+  footerAddress: { position: "absolute", bottom: 36, left: 48, right: 120, fontSize: 9, color: MUTED },
   pageNumber: { position: "absolute", bottom: 36, right: 48, fontSize: 8, color: MUTED },
 });
 
@@ -88,7 +79,8 @@ function BottomFlourish() {
   );
 }
 
-function LetterheadChrome() {
+// Contact details come from shared/content.js, the same source as the website.
+function LetterheadChrome(company) {
   return [
     h(Image, { key: "watermark", src: ICON_SRC, style: styles.watermark, fixed: true }),
     h(TopFlourish, { key: "top" }),
@@ -98,10 +90,11 @@ function LetterheadChrome() {
     h(
       View,
       { key: "footer", style: styles.footerRow, fixed: true },
-      h(Text, { style: styles.footerLabel }, LETTERHEAD_CONTACT.phone),
-      h(Text, { style: styles.footerLabel }, LETTERHEAD_CONTACT.email)
+      h(Text, { style: styles.footerLabel }, company.phoneDisplay),
+      h(Text, { style: styles.footerLabel }, company.email),
+      h(Text, { style: styles.footerLabel }, company.website)
     ),
-    h(Text, { key: "website", style: styles.footerWebsite, fixed: true }, LETTERHEAD_CONTACT.website),
+    h(Text, { key: "address", style: styles.footerAddress, fixed: true }, company.address),
     h(Text, {
       key: "pageno",
       style: styles.pageNumber,
@@ -144,10 +137,11 @@ export function CatalogDocument({ company, categories, productsByCategory }) {
   const coverPage = h(
     Page,
     { size: "A4", style: styles.coverPage },
-    LetterheadChrome(),
+    LetterheadChrome(company),
     h(Text, { style: styles.coverTag }, "PRODUCT CATALOGUE"),
     h(Text, { style: styles.coverTitle }, company.name),
     h(Text, { style: styles.coverSubtitle }, company.tagline),
+    h(Text, { style: styles.coverMeta }, company.address),
     h(Text, { style: styles.coverMeta }, `Generated ${generatedOn}`),
     h(
       Text,
@@ -159,7 +153,7 @@ export function CatalogDocument({ company, categories, productsByCategory }) {
   const productPage = h(
     Page,
     { size: "A4", style: styles.page },
-    LetterheadChrome(),
+    LetterheadChrome(company),
     ...categories.map((category) => CategorySection(category, productsByCategory[category.slug] || []))
   );
 
