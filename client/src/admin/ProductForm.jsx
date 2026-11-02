@@ -6,7 +6,7 @@ import { endpoints } from "@/lib/api.js";
 
 const FORM_OPTIONS = ["flakes", "slices", "dices", "granules", "powder", "blend"];
 // Matches MAX_IMAGE_BYTES in server/src/routes/images.js.
-const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
 
 /** Photos are shrunk to at most this many pixels on their longest side. */
 const MAX_PHOTO_SIDE = 1600;
@@ -16,8 +16,8 @@ const OPTIMISE_ABOVE_BYTES = 1024 * 1024;
 const formatSize = (bytes) => (bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`);
 
 /**
- * Uploaded photos are served exactly as uploaded, so a 10 MB phone photo would
- * make every visitor download 10 MB. Before uploading, large photos are
+ * Uploaded photos are served exactly as uploaded, so a 15 MB phone photo would
+ * make every visitor download 15 MB. Before uploading, large photos are
  * resized in the browser to at most 1600px on the longest side and saved as
  * WebP — usually a few hundred KB, with no visible difference on the site.
  * Small photos, and any file the browser can't decode, go up unchanged.
@@ -75,7 +75,7 @@ function ImageField({ value, onChange, onUploadingChange }) {
     setUploadError(null);
     setSizeNote(null);
     if (picked.size > MAX_UPLOAD_BYTES) {
-      setUploadError(`Image is too large (${formatSize(picked.size)}) — please use a file under 10 MB.`);
+      setUploadError(`Image is too large (${formatSize(picked.size)}) — please use a file under 15 MB.`);
       if (inputRef.current) inputRef.current.value = "";
       return;
     }
@@ -168,7 +168,7 @@ function ImageField({ value, onChange, onUploadingChange }) {
           )}
           {!uploadError && sizeNote && <p className="text-xs text-emerald-700">{sizeNote}</p>}
           {!uploadError && !sizeNote && !uploading && (
-            <p className="text-xs text-ink-500">JPEG, PNG, WebP or AVIF, up to 10 MB. Large photos are optimised automatically.</p>
+            <p className="text-xs text-ink-500">JPEG, PNG, WebP or AVIF, up to 15 MB. Large photos are optimised automatically.</p>
           )}
 
           <div>
