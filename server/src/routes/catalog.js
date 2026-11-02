@@ -4,6 +4,7 @@ import { prisma } from "../prisma.js";
 import { asyncRoute } from "../util.js";
 import { company, productCategories } from "../../../shared/content.js";
 import { CatalogDocument } from "../pdf/CatalogDocument.js";
+import { getUploadedCatalogBytes } from "../catalogFile.js";
 
 export const catalogRouter = Router();
 
@@ -21,6 +22,23 @@ catalogRouter.head("/", (req, res) => res.status(200).end());
 catalogRouter.get(
   "/",
   asyncRoute(async (req, res) => {
+    const filename = `${company.shortName.replace(/\s+/g, "-")}-Product-Catalogue.pdf`;
+    // Always checked again, never served from a cache: after a new catalogue
+    // is uploaded (or removed) the very next download is the current one.
+    const headers = {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "no-cache",
+    };
+
+    // An uploaded catalogue PDF, when the admin has set one, wins.
+    const uploaded = await getUploadedCatalogBytes();
+    if (uploaded) {
+      res.set(headers);
+      res.send(uploaded);
+      return;
+    }
+
     const products = await prisma.product.findMany({
       where: { active: true },
       orderBy: [{ category: "asc" }, { sortOrder: "asc" }],
@@ -35,13 +53,7 @@ catalogRouter.get(
       CatalogDocument({ company, categories: productCategories, productsByCategory })
     );
 
-    const filename = `${company.shortName.replace(/\s+/g, "-")}-Product-Catalogue.pdf`;
-
-    res.set({
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="${filename}"`,
-      "Cache-Control": "public, max-age=3600",
-    });
+    res.set(headers);
     res.send(buffer);
   })
 );

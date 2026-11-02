@@ -18,7 +18,9 @@ imagesRouter.get(
   "/:id",
   asyncRoute(async (req, res) => {
     const image = await prisma.image.findUnique({ where: { id: req.params.id } });
-    if (!image) {
+    // Images only: other files kept in the same store (an uploaded catalogue
+    // PDF) are served solely through their own route.
+    if (!image || !IMAGE_TYPES.includes(image.contentType)) {
       res.status(404).json({ error: "Image not found." });
       return;
     }

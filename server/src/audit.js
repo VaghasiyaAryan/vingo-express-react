@@ -49,6 +49,8 @@ const ACTIONS = [
   ["PATCH", /^\/products\/([^/]+)\/active$/, "Changed product visibility", (req) => (req.body?.active ? "shown" : "hidden")],
   ["DELETE", /^\/products\/([^/]+)$/, "Deleted product"],
   ["POST", /^\/images$/, "Uploaded product photo"],
+  ["PUT", /^\/catalog-file$/, "Uploaded catalogue PDF", (req) => (typeof req.query?.name === "string" ? req.query.name : null)],
+  ["DELETE", /^\/catalog-file$/, "Removed uploaded catalogue (back to auto-generated)"],
   ["PATCH", /^\/inquiries\/([^/]+)$/, "Changed enquiry status", (req) => req.body?.status],
   ["DELETE", /^\/inquiries\/([^/]+)$/, "Deleted enquiry"],
   ["POST", /^\/inquiries\/([^/]+)\/reply$/, "Replied to enquiry", (req) => req.body?.subject],

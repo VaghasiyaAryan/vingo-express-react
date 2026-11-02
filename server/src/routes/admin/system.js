@@ -4,6 +4,14 @@ import { asyncRoute } from "../../util.js";
 import { emailConfigured } from "../../config.js";
 import { IMAGE_TYPES, MAX_IMAGE_BYTES } from "../images.js";
 import { detectImageType } from "../../security.js";
+import {
+  MAX_CATALOG_BYTES,
+  PDF_TYPE,
+  getUploadedCatalog,
+  looksLikePdf,
+  removeUploadedCatalog,
+  saveUploadedCatalog,
+} from "../../catalogFile.js";
 import { company, productCategories } from "../../../../shared/content.js";
 
 export const adminSystemRouter = Router();
@@ -96,7 +104,46 @@ adminSystemRouter.get(
       activeCount: products.length,
       catalogUrl: `${company.websiteUrl}/api/catalog`,
       categories: productCategories.map((c) => ({ slug: c.slug, title: c.title, count: counts[c.slug] || 0 })),
+      // The uploaded PDF in use instead of the auto-generated one, or null.
+      uploaded: await uploadedCatalogForAdmin(),
+      maxUploadBytes: MAX_CATALOG_BYTES,
     });
+  })
+);
+
+async function uploadedCatalogForAdmin() {
+  const info = await getUploadedCatalog();
+  return info ? { fileName: info.fileName, sizeBytes: info.sizeBytes, uploadedAt: info.uploadedAt, uploadedBy: info.uploadedBy } : null;
+}
+
+/**
+ * Uploads a catalogue PDF (raw request body, Content-Type application/pdf,
+ * original file name in ?name=) to replace the auto-generated catalogue. A
+ * previous upload is deleted once the new one is saved. The file must really
+ * be a PDF — the bytes are checked, not just the name or the claimed type.
+ */
+adminSystemRouter.put(
+  "/catalog-file",
+  express.raw({ type: PDF_TYPE, limit: MAX_CATALOG_BYTES }),
+  asyncRoute(async (req, res) => {
+    if (req.get("content-type") !== PDF_TYPE || !looksLikePdf(req.body)) {
+      res.status(400).json({ error: "Please choose a PDF file." });
+      return;
+    }
+    await saveUploadedCatalog(req.body, {
+      fileName: typeof req.query.name === "string" ? req.query.name : "catalogue.pdf",
+      uploadedBy: req.admin.email ?? req.admin.name,
+    });
+    res.json({ uploaded: await uploadedCatalogForAdmin() });
+  })
+);
+
+/** Deletes the uploaded catalogue PDF; the link serves the auto-generated catalogue again. */
+adminSystemRouter.delete(
+  "/catalog-file",
+  asyncRoute(async (req, res) => {
+    const removed = await removeUploadedCatalog();
+    res.json({ removed, uploaded: null });
   })
 );
 

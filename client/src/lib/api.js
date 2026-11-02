@@ -130,6 +130,14 @@ export const endpoints = {
     deleteProduct: (id) => api.delete(`/api/admin/products/${id}`),
     saveProductOrder: (ids) => api.put("/api/admin/products/order", { ids }),
     uploadImage: (file) => request("/api/admin/images", { method: "POST", file }),
+    // Some systems give PDFs an empty or odd MIME type, so the body is always
+    // sent as application/pdf; the server checks the bytes are really a PDF.
+    uploadCatalog: (file) =>
+      request(`/api/admin/catalog-file?name=${encodeURIComponent(file.name)}`, {
+        method: "PUT",
+        file: new Blob([file], { type: "application/pdf" }),
+      }),
+    removeCatalog: () => api.delete("/api/admin/catalog-file"),
 
     admins: (options) => api.get("/api/admin/admins", options),
     createAdmin: (data) => api.post("/api/admin/admins", data),

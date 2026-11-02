@@ -131,12 +131,24 @@ export function createApp() {
 
   // -------------------------------------------------------- error handler
   app.use((err, req, res, next) => {
-    console.error(`${req.method} ${req.originalUrl} failed:`, err);
     if (res.headersSent) {
       next(err);
       return;
     }
     const wantsJson = req.path.startsWith("/api");
+
+    // Request-body problems are the sender's, not a server fault: an upload
+    // over its size limit, or a body that isn't valid JSON. Say so plainly.
+    if (err?.type === "entity.too.large") {
+      res.status(413).json({ error: "That file is too large. Please choose a smaller one (15 MB at most)." });
+      return;
+    }
+    if (err?.type === "entity.parse.failed") {
+      res.status(400).json({ error: "The request could not be read. Please try again." });
+      return;
+    }
+
+    console.error(`${req.method} ${req.originalUrl} failed:`, err);
     if (wantsJson) {
       res.status(500).json({ error: "Something went wrong on our side. Please try again." });
     } else {
