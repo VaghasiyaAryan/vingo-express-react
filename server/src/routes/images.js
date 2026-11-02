@@ -3,7 +3,10 @@ import { prisma } from "../prisma.js";
 import { asyncRoute } from "../util.js";
 
 export const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
-export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+// The admin form shrinks large photos before uploading, so this is only a
+// ceiling for the rare file it can't process. Matches MAX_UPLOAD_BYTES in
+// client/src/admin/ProductForm.jsx.
+export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 export const imagesRouter = Router();
 

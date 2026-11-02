@@ -6,13 +6,53 @@ import { endpoints } from "@/lib/api.js";
 
 const FORM_OPTIONS = ["flakes", "slices", "dices", "granules", "powder", "blend"];
 // Matches MAX_IMAGE_BYTES in server/src/routes/images.js.
-const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
+/** Photos are shrunk to at most this many pixels on their longest side. */
+const MAX_PHOTO_SIDE = 1600;
+/** Files already this small and this size are uploaded untouched. */
+const OPTIMISE_ABOVE_BYTES = 1024 * 1024;
+
+const formatSize = (bytes) => (bytes >= 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.round(bytes / 1024)} KB`);
+
+/**
+ * Uploaded photos are served exactly as uploaded, so a 10 MB phone photo would
+ * make every visitor download 10 MB. Before uploading, large photos are
+ * resized in the browser to at most 1600px on the longest side and saved as
+ * WebP — usually a few hundred KB, with no visible difference on the site.
+ * Small photos, and any file the browser can't decode, go up unchanged.
+ */
+async function optimisePhoto(file) {
+  let bitmap;
+  try {
+    bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    return file; // the browser can't decode it — upload the original
+  }
+  const scale = Math.min(1, MAX_PHOTO_SIDE / Math.max(bitmap.width, bitmap.height));
+  if (scale === 1 && file.size <= OPTIMISE_ABOVE_BYTES) {
+    bitmap.close?.();
+    return file;
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close?.();
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", 0.85));
+  // Keep the original if the browser can't write WebP, or the result isn't smaller.
+  if (!blob || blob.type !== "image/webp" || blob.size >= file.size) return file;
+  return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".webp", { type: "image/webp" });
+}
 
 function ImageField({ value, onChange, onUploadingChange }) {
   const [objectUrl, setObjectUrl] = useState(null);
   const [fileName, setFileName] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState(null);
+  const [sizeNote, setSizeNote] = useState(null);
   const inputRef = useRef(null);
   const initialUrl = useRef(value);
 
@@ -33,8 +73,9 @@ function ImageField({ value, onChange, onUploadingChange }) {
     if (!picked) return;
 
     setUploadError(null);
+    setSizeNote(null);
     if (picked.size > MAX_UPLOAD_BYTES) {
-      setUploadError("Image is too large — please use a file under 5 MB (around 1200px wide is plenty).");
+      setUploadError(`Image is too large (${formatSize(picked.size)}) — please use a file under 10 MB.`);
       if (inputRef.current) inputRef.current.value = "";
       return;
     }
@@ -45,8 +86,14 @@ function ImageField({ value, onChange, onUploadingChange }) {
     setUploading(true);
 
     try {
-      const { url } = await endpoints.admin.uploadImage(picked);
+      const upload = await optimisePhoto(picked);
+      const { url } = await endpoints.admin.uploadImage(upload);
       onChange(url);
+      setSizeNote(
+        upload === picked
+          ? `Uploaded as is (${formatSize(picked.size)}).`
+          : `Optimised for the web: ${formatSize(picked.size)} → ${formatSize(upload.size)}.`
+      );
     } catch (err) {
       setUploadError(err.message || "Upload failed. Please try again.");
       setObjectUrl(null);
@@ -62,6 +109,7 @@ function ImageField({ value, onChange, onUploadingChange }) {
     setFileName(null);
     onChange(initialUrl.current || "");
     setUploadError(null);
+    setSizeNote(null);
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -96,7 +144,7 @@ function ImageField({ value, onChange, onUploadingChange }) {
                 className="sr-only"
               />
             </label>
-            {uploading && <span className="text-xs text-ink-500">Uploading…</span>}
+            {uploading && <span className="text-xs text-ink-500">Optimising and uploading…</span>}
             {!uploading && fileName && (
               <>
                 <span className="truncate text-xs text-ink-500">{fileName}</span>
@@ -117,6 +165,10 @@ function ImageField({ value, onChange, onUploadingChange }) {
               <AlertCircle className="h-3.5 w-3.5 shrink-0" />
               {uploadError}
             </p>
+          )}
+          {!uploadError && sizeNote && <p className="text-xs text-emerald-700">{sizeNote}</p>}
+          {!uploadError && !sizeNote && !uploading && (
+            <p className="text-xs text-ink-500">JPEG, PNG, WebP or AVIF, up to 10 MB. Large photos are optimised automatically.</p>
           )}
 
           <div>
